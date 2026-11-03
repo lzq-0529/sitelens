@@ -1,0 +1,25 @@
+{
+  "name": "sitelens-web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "SiteLens console UI for independent-site traffic, orders, and GEO monitoring.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@ant-design/icons": "^5.6.1",
+    "@ant-design/plots": "2.6.8",
+    "@ant-design/pro-components": "2.8.10",
+    "antd": "5.29.3",
+    "dayjs": "^1.11.13",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "react-router-dom": "^6.30.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.7.0",
+    "vite": "^6.4.1"
+  }
+}
