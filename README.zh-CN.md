@@ -14,7 +14,7 @@
 ![Shopify](https://img.shields.io/badge/Shopify-orders%2Fpaid-96bf48.svg)
 ![WooCommerce](https://img.shields.io/badge/WooCommerce-webhook-7f54b3.svg)
 
-[English](README.md) · 简体中文 · **[30 分钟接入](docs/getting-started.zh-CN.md)** · [部署](docs/deploy.md) · [采集脚本](docs/tracker.md)
+[English](README.md) · 简体中文 · **[30 分钟接入](docs/getting-started.zh-CN.md)** · [部署](docs/deploy.md) · [采集脚本](docs/tracker.md) · [路线图](docs/roadmap.zh-CN.md) · 背后的真实产品：[qingjiaolab.com](https://qingjiaolab.com)
 
 `#独立站` `#运营监控` `#SEO` `#GEO` `#Shopify` `#WooCommerce` `#自托管` `#转化`
 
@@ -23,6 +23,8 @@
 <p align="center">
   <img src="docs/screenshots/overview.png" alt="SiteLens 流量与总览：独立访客、看商品、加购、结账、完成下单、已识别用户、国内外漏斗" width="960">
 </p>
+
+> **真实在用，展示用演示数据。** SiteLens 是从 **[qingjiaolab.com](https://qingjiaolab.com)**（青椒智能脱敏：文件交给 AI 前先脱敏）生产环境背后的运营监控里提炼出来的。点开官网，就能看到这套监控原本在看的那个真实产品长什么样。本 README 的所有截图都故意用**演示店**（流明好物）数据：不展示青椒官网的真实流量、账号和订单。
 
 漏斗按 **店** 来，不是按「立即体验」：
 
@@ -148,6 +150,12 @@ sitelens.purchase({ amount: 199, sku: "sku-1", title: "亚麻床品四件套", o
 ```bash
 python -m sitelens.manage create-owner --username 你的名字
 ```
+
+## 和同类比，还缺什么（不藏着）
+
+Umami/Plausible 今天把简单流量做得更好（实时、多站点、英文界面），Matomo 更深，PostHog 有回放和实验，Uptime Kuma 回答「网站活没活」。SiteLens 是店铺形状的那个：国内外域名、知乎/小红书/百度命名来源、搜索引擎/AI 爬虫不被过滤掉、加购到付款漏斗、国内+海外 GEO。
+
+差距清单公开维护——实时访客、英文界面、多店铺、投放归因、导出与保留、更多告警通道、可用性/证书小监控都在路线图里：**[docs/roadmap.zh-CN.md](docs/roadmap.zh-CN.md)**。
 
 ## 刻意没放进来的
 

@@ -17,7 +17,7 @@ Shopify, WooCommerce, or a China + international pair. Your SQLite. No public si
 ![Shopify](https://img.shields.io/badge/Shopify-orders%2Fpaid-96bf48.svg)
 ![WooCommerce](https://img.shields.io/badge/WooCommerce-webhook-7f54b3.svg)
 
-[简体中文](README.zh-CN.md) · English · **[30-minute setup](docs/getting-started.md)** · [Deploy](docs/deploy.md) · [Tracker](docs/tracker.md)
+[简体中文](README.zh-CN.md) · English · **[30-minute setup](docs/getting-started.md)** · [Deploy](docs/deploy.md) · [Tracker](docs/tracker.md) · [Roadmap](docs/roadmap.md) · Live product behind it: [qingjiaolab.com](https://qingjiaolab.com)
 
 `#analytics` `#seo` `#geo` `#ecommerce` `#shopify` `#woocommerce` `#self-hosted` `#web-analytics`
 
@@ -26,6 +26,8 @@ Shopify, WooCommerce, or a China + international pair. Your SQLite. No public si
 <p align="center">
   <img src="docs/screenshots/overview.png" alt="SiteLens overview: unique visitors, product views, add-to-cart, checkout, paid orders, identified users, China vs international funnel" width="960">
 </p>
+
+> **Real site behind it, demo data in front of you.** SiteLens is extracted from the production ops monitoring behind **[qingjiaolab.com](https://qingjiaolab.com)** — 青椒智能脱敏 (Qingjiao Data Redaction), private document redaction before files go to AI. Visit the live site to see the product whose traffic, crawlers, and AI mentions this console was built to watch. Every screenshot in this README is a **mock demo store** (流明好物 / Lumen Goods) on purpose: no real Qingjiao traffic, accounts, or orders are shown.
 
 The funnel is a **store** funnel, not a SaaS “activate trial” funnel:
 
@@ -154,6 +156,12 @@ Empty console instead of demo data:
 ```bash
 python -m sitelens.manage create-owner --username you
 ```
+
+## How it compares — and what is still missing
+
+Umami/Plausible do simple traffic better today (realtime, multi-site, English UI). Matomo is deeper. PostHog does replay/flags. Uptime Kuma answers “is it up?”. SiteLens is the store-shaped one: CN+intl hosts, named Zhihu/小红书/Baidu sources, search/AI crawlers kept instead of filtered away, cart→paid-order funnel, and Chinese + global GEO.
+
+We keep the honest gap list in the open — realtime, English UI, multi-store, campaign attribution, export/retention, richer alerts, uptime/SSL mini-checks are P0/P1, not hidden fine print: **[docs/roadmap.md](docs/roadmap.md)**.
 
 ## What this is not
 
