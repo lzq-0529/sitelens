@@ -4,7 +4,7 @@ import { App, Button, Col, Form, Input, InputNumber, Radio, Row, Space, Tabs, Ta
 import { api } from "../api";
 import { useAuth } from "../auth";
 import { Kpis, LoadError, useLoad } from "../components";
-import { useT } from "../i18n";
+import { useLang, useT } from "../i18n";
 
 const lines = (value) => (Array.isArray(value) ? value.join("\n") : value || "");
 const countLines = (value) => (Array.isArray(value) ? value.filter(Boolean).length : 0);
@@ -82,10 +82,12 @@ export function SettingsPage() {
   const tokenAttr = token ? ` data-token="${token}"` : "";
   const snippetCn = `<script defer src="${origin}/tracker.js" data-region="cn"${tokenAttr}></script>`;
   const snippetIntl = `<script defer src="${origin}/tracker.js" data-region="intl"${tokenAttr}></script>`;
+  const { isEn } = useLang();
+  const sampleTitle = isEn ? "Linen bedding set" : "亚麻床品四件套";
   const identifySample = `sitelens.identify(user.email);
 sitelens.signup(user.email);
-sitelens.addToCart("sku-1", "亚麻床品四件套");
-sitelens.purchase({ amount: 199, sku: "sku-1", title: "亚麻床品四件套", order_id: "A1001" });`;
+sitelens.addToCart("sku-1", "${sampleTitle}");
+sitelens.purchase({ amount: 199, sku: "sku-1", title: "${sampleTitle}", order_id: "A1001" });`;
   const hooks = data.hooks || {};
   const shopifyReady = Boolean(data.shopify_secret);
   const wooReady = Boolean(data.woo_secret);

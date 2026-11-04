@@ -5,12 +5,16 @@ import { useRef, useState } from "react";
 import { api, money, tableRequest, time } from "../api";
 import { useAuth } from "../auth";
 import { DailyColumn, DataTable, DaysSwitch, Kpis, LoadError, RankTable, RegionTag, useLoad } from "../components";
-import { useT } from "../i18n";
+import { useLang, useT } from "../i18n";
 
 const CHANNELS = ["独立站收银台", "微信", "支付宝", "Stripe", "PayPal", "Shopify", "对公转账", "其他"];
 
+const PRODUCT_EN = { "亚麻床品四件套": "Linen bedding set", "北岛羊毛毯": "North Island wool throw", "手冲咖啡套装": "Pour-over coffee set" };
+
 export function OrdersPage() {
   const t = useT();
+  const { isEn } = useLang();
+  const product = (name) => (isEn ? PRODUCT_EN[name] || name : name);
   const STATUS = { paid: { text: t("已支付", "Paid") }, refunded: { text: t("已退款", "Refunded") } };
   const { isOwner } = useAuth();
   const { message } = App.useApp();
@@ -43,7 +47,7 @@ export function OrdersPage() {
           </ProCard>
         </Col>
         <Col xs={24} xl={8}>
-            <RankTable title={t("按商品", "By product")} height={260} rows={s?.by_product || s?.by_plan} columns={[{ title: t("商品", "Product"), dataIndex: "label" }, { title: t("金额", "Amount"), dataIndex: "cents", align: "right", render: (cents) => money(cents) }]} />
+            <RankTable title={t("按商品", "By product")} height={260} rows={s?.by_product || s?.by_plan} columns={[{ title: t("商品", "Product"), dataIndex: "label", render: (v) => product(v) }, { title: t("金额", "Amount"), dataIndex: "cents", align: "right", render: (cents) => money(cents) }]} />
         </Col>
       </Row>
       <DataTable
@@ -54,7 +58,7 @@ export function OrdersPage() {
         columns={[
           { title: t("关键词", "Keyword"), dataIndex: "q", hideInTable: true, filter: true, fieldProps: { placeholder: t("客户、渠道、SKU 或商品", "Customer, channel, SKU or product") } },
           { title: t("时间", "Time"), dataIndex: "at", renderText: time, width: 160 },
-          { title: t("商品", "Product"), dataIndex: "title", ellipsis: true },
+          { title: t("商品", "Product"), dataIndex: "title", ellipsis: true, render: (_, row) => product(row.title) },
           { title: "SKU", dataIndex: "sku", width: 120, renderText: (v) => v || "—" },
           { title: t("区域", "Region"), dataIndex: "region", width: 90, valueType: "select", valueEnum: { cn: { text: t("国内", "China") }, intl: { text: t("海外", "Intl") } }, filter: true, render: (_, row) => <RegionTag region={row.region} /> },
           { title: t("金额", "Amount"), dataIndex: "amount_cents", align: "right", render: (_, row) => <b>{money(row.amount_cents, row.currency)}</b> },

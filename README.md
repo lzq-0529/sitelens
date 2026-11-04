@@ -17,14 +17,14 @@ Shopify, WooCommerce, or a China + international pair. Your SQLite. No public si
 ![Shopify](https://img.shields.io/badge/Shopify-orders%2Fpaid-96bf48.svg)
 ![WooCommerce](https://img.shields.io/badge/WooCommerce-webhook-7f54b3.svg)
 
-[简体中文](README.zh-CN.md) · English · **[30-minute setup](docs/getting-started.md)** · [Deploy](docs/deploy.md) · [Tracker](docs/tracker.md) · [Roadmap](docs/roadmap.md) · Live product behind it: [qingjiaolab.com](https://qingjiaolab.com)
+[Chinese](README.zh-CN.md) · English · **[30-minute setup](docs/getting-started.md)** · [Deploy](docs/deploy.md) · [Tracker](docs/tracker.md) · [Roadmap](docs/roadmap.md) · Live product behind it: [qingjiaolab.com](https://qingjiaolab.com)
 
 `#analytics` `#seo` `#geo` `#ecommerce` `#shopify` `#woocommerce` `#self-hosted` `#web-analytics`
 
 </div>
 
 
-> **Real site behind it, demo data in front of you.** SiteLens is extracted from the production ops monitoring behind **[qingjiaolab.com](https://qingjiaolab.com)** — 青椒智能脱敏 (Qingjiao Data Redaction), private document redaction before files go to AI. Visit the live site to see the product whose traffic, crawlers, and AI mentions this console was built to watch. Every screenshot in this README is a **mock demo store** (流明好物 / Lumen Goods) on purpose: no real Qingjiao traffic, accounts, or orders are shown.
+> **Real site behind it, demo data in front of you.** SiteLens is extracted from the production ops monitoring behind **[qingjiaolab.com](https://qingjiaolab.com) — Qingjiao Redact（青椒智能脱敏 ）**, private document redaction before files go to AI. Visit the live site to see the product whose traffic, crawlers, and AI mentions this console was built to watch. Every screenshot in this README is a **mock demo store** (Lumen Goods) on purpose: no real Qingjiao traffic, accounts, or orders are shown.
 
 <table>
   <tr>
@@ -53,10 +53,10 @@ SiteLens is the one private console that puts those four questions on one desk:
 
 | Question | Where you see it |
 | --- | --- |
-| Who came, from Zhihu / 小红书 / Baidu / Google / UTM? | Overview + site sources |
+| Who came, from Zhihu / Xiaohongshu / Baidu / Google / UTM? | Overview + site sources |
 | Did Baidu, Googlebot, GPTBot, Ahrefs actually crawl us? | **SEO · search engines & AI crawlers** |
 | Who is the visitor (email / account), and did they buy? | Visitors + orders |
-| Do DeepSeek / 豆包 / ChatGPT / Perplexity cite the store? | **GEO citation watch** |
+| Do DeepSeek / Doubao / ChatGPT / Perplexity cite the store? | **GEO citation watch** |
 
 Built for people who run a store, not for people who collect event soup.
 
@@ -74,23 +74,23 @@ This was always in the product. It belongs on the README.
 
 After you paste `tracker.js`, SiteLens classifies every hit:
 
-- **Humans vs bots** — toggle “只看真人 / 全部访问” so Googlebot does not inflate conversion
-- **Search engines** — Google, Bing, Baidu, 搜狗, 360, 神马, DuckDuckGo, Yandex, Applebot, Amazonbot
+- **Humans vs bots** — toggle “Humans only / All visits” so Googlebot does not inflate conversion
+- **Search engines** — Google, Bing, Baidu, Sogou, 360, Shenma, DuckDuckGo, Yandex, Applebot, Amazonbot
 - **SEO tools** — Ahrefs, Semrush, Petal
-- **AI crawlers** — GPTBot, ChatGPT, Claude, Gemini, Perplexity, DeepSeek, Kimi, 豆包, 头条/抖音 Bytespider
-- **Sources & campaigns** — 知乎, 小红书, 微信, 抖音, B站, 微博, 百度, Google, Bing, plus raw `utm_source`
+- **AI crawlers** — GPTBot, ChatGPT, Claude, Gemini, Perplexity, DeepSeek, Kimi, Doubao, Toutiao/Douyin Bytespider
+- **Sources & campaigns** — Zhihu, Xiaohongshu, WeChat, Douyin, Bilibili, Weibo, Baidu, Google, Bing, plus raw `utm_source`
 - **Landing pages** — which path the visitor or crawler opened
 - **Crawl log** — engine, path, status, IP, verified vs guessed
 
-Open **站点 / SEO / GEO → 搜索引擎与 AI 抓取**. The sixth KPI on that page is “搜索引擎抓取”.
+Open **Site / SEO / GEO → Search & AI crawlers**. The sixth KPI on that page is “Search crawls”.
 
 ### 3. GEO — will AI recommend your store this week?
 
 
 Fifteen consumer answer engines ship in the box:
 
-国内：DeepSeek · 豆包 · Kimi · 通义 · 文心 · 清言 · 元宝 · 秘塔 · 天工  
-海外：Perplexity · ChatGPT · Gemini · Copilot · Claude · Grok
+China: DeepSeek · Doubao · Kimi · Tongyi · Wenxin · ChatGLM · Yuanbao · Metaso · Tiangong  
+International: Perplexity · ChatGPT · Gemini · Copilot · Claude · Grok
 
 SiteLens does **not** log into those products. A weekly agent (Grok, Muse, or your script) pulls due prompts from `GET /api/geo/tasks` and posts answers to `POST /api/geo/ingest`. Scoring uses **your** brand, domains, keywords, and competitors.
 
@@ -148,7 +148,7 @@ python -m sitelens.manage create-owner --username you
 
 ## How it compares — and what is still missing
 
-Umami/Plausible do simple traffic better today (realtime, multi-site, English UI). Matomo is deeper. PostHog does replay/flags. Uptime Kuma answers “is it up?”. SiteLens is the store-shaped one: CN+intl hosts, named Zhihu/小红书/Baidu sources, search/AI crawlers kept instead of filtered away, cart→paid-order funnel, and Chinese + global GEO.
+Umami/Plausible do simple traffic better today (realtime, multi-site, English UI). Matomo is deeper. PostHog does replay/flags. Uptime Kuma answers “is it up?”. SiteLens is the store-shaped one: CN+intl hosts, named Zhihu/Xiaohongshu/Baidu sources, search/AI crawlers kept instead of filtered away, cart→paid-order funnel, and Chinese + global GEO.
 
 We keep the honest gap list in the open — realtime, English UI, multi-store, campaign attribution, export/retention, richer alerts, uptime/SSL mini-checks are P0/P1, not hidden fine print: **[docs/roadmap.md](docs/roadmap.md)**.
 

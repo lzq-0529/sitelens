@@ -4,7 +4,7 @@ import { Dropdown, Space, Tag } from "antd";
 import { lazy, Suspense } from "react";
 import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { BrandLogo, useAuth } from "./auth";
-import { LangToggle, useT } from "./i18n";
+import { LangToggle, useLang, useT } from "./i18n";
 
 const page = (load, name) => lazy(() => load().then((module) => ({ default: module[name] })));
 const OverviewPage = page(() => import("./pages/overview"), "OverviewPage");
@@ -16,6 +16,7 @@ const SettingsPage = page(() => import("./pages/settings"), "SettingsPage");
 
 export function ConsoleLayout() {
   const t = useT();
+  const { isEn } = useLang();
   const { user, logout, isOwner } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -48,7 +49,7 @@ export function ConsoleLayout() {
         </Space>,
       ]}
       avatarProps={{
-        title: `${user.display_name} (${isOwner ? t("管理员", "Owner") : t("只读", "Viewer")})`,
+        title: `${isEn && user.display_name === "站点管理员" ? "Site owner" : user.display_name} (${isOwner ? t("管理员", "Owner") : t("只读", "Viewer")})`,
         size: "small",
         render: (_props, dom) => (
           <Dropdown menu={{ items: [{ key: "logout", icon: <LogoutOutlined />, label: t("退出登录", "Sign out"), onClick: logout }] }}>{dom}</Dropdown>
