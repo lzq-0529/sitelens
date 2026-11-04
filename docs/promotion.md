@@ -90,3 +90,16 @@ tags:
 - Link qingjiaolab.com as the production product behind the extraction, not
   as a public SiteLens demo (there is no public console for it).
 - One project per PR, follow each list's template, no mass submissions in a day.
+
+## Submitted log
+
+Rule: submit via issues / web forms / email only. **No list forks are kept
+under the maintainer account**; the profile shows only first-party projects.
+
+| Date | Target | Method | Status |
+| --- | --- | --- | --- |
+| 2026-11-04 | HelloGitHub | [Issue #4245](https://github.com/521xueweihan/HelloGitHub/issues/4245) self-recommendation | Pending (monthly, out on the 28th) |
+| 2026-11-04 | awesome-analytics | [Issue #306](https://github.com/oxnr/awesome-analytics/issues/306) suggestion, no fork | Pending |
+| — | selfh.st/apps | Email hello@selfh.st | Needs the maintainer's own mailbox (copy above) |
+| — | OpenAlternative | Sign-in required (magic link / GitHub OAuth) | Needs the maintainer to sign in |
+| After 2027-03-04 | awesome-selfhosted | YAML PR (fork then, delete after merge) | Not yet eligible |

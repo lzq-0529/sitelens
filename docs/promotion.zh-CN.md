@@ -71,3 +71,15 @@ tags:
 - 截图和演示数据一直用演示店（流明好物），绝不公布 qingjiaolab.com 的真实流量、账号、订单。
 - 链接 qingjiaolab.com 时写清它是「提炼来源背后的生产产品」，不是 SiteLens 的公开演示（没有公开后台）。
 - 一个 PR 只投一个项目，按各清单模板来，不要一天批量轰炸。
+
+## 投递记录
+
+原则：只用 Issue / 网页表单 / 邮件投递，**不在维护者账号下建任何合集的 Fork**，主页只保留自己的项目。
+
+| 日期 | 渠道 | 方式 | 状态 |
+| --- | --- | --- | --- |
+| 2026-11-04 | HelloGitHub | [Issue #4245](https://github.com/521xueweihan/HelloGitHub/issues/4245) 自荐 | 待审核（月刊每月 28 号） |
+| 2026-11-04 | awesome-analytics | [Issue #306](https://github.com/oxnr/awesome-analytics/issues/306) 建议收录（无 Fork） | 待回复 |
+| — | selfh.st/apps | 需发邮件 hello@selfh.st | 待维护者用自己邮箱发送（文案见上） |
+| — | OpenAlternative | 需登录（magic link / GitHub OAuth） | 待维护者本人登录后提交 |
+| 2027-03-04 后 | awesome-selfhosted | YAML PR（当时再 Fork，合并后删 Fork） | 未到期 |
