@@ -20,12 +20,15 @@ English version: [promotion.md](promotion.md)。
 | 渠道 | 适合的分类 | 什么时候 | 注意 |
 | --- | --- | --- | --- |
 | [oxnr/awesome-analytics](https://github.com/oxnr/awesome-analytics) | Website analytics / SEO | **现在**（Fork + PR） | 用下面现成条目，按文件现有格式一行一条。 |
-| [awesome-selfhosted](https://github.com/awesome-selfhosted/awesome-selfhosted)（Analytics） | 自托管分析 | **首次发布满 4 个月后** | 硬规则：发布超 4 个月、持续维护、安装说明可用、真人提交。在 `awesome-selfhosted-data` 里交一个 YAML，一个 PR 只交一个项目。先记日历，不要提前投。 |
+| [awesome-selfhosted](https://github.com/awesome-selfhosted/awesome-selfhosted)（Analytics） | 自托管分析 | **2027-03-04 之后** | 硬规则：首次发布超 4 个月（v0.1.0 是 2026-11-04 发的）、持续维护、安装说明可用、真人提交。在 `awesome-selfhosted-data` 里交一个 YAML，一个 PR 只交一个项目。先记日历，不要提前投。 |
+| [selfh.st/apps](https://selfh.st/apps-about/) | 自托管应用目录 | **现在** | 免费、人工审核、每天刷新。在 selfh.st/submit 提交（或写信 hello@selfh.st），带仓库、许可证、文档、截图。排名看仓库年龄/活跃/Star，所以保持提交节奏。 |
+| [OpenAlternative](https://openalternative.co/submit) | 「Google Analytics 的开源替代」 | **现在**（免费排队） | 要公开仓库、写明替代哪款专有产品、官网用自己的域名。免费要排队，有付费插队——先别付钱。 |
+| [HelloGitHub](https://github.com/521xueweihan/HelloGitHub) | 中文开源月刊 | **现在**（Issue 自荐） | 用他们的 Issue 模板或 hellogithub.com：标题 ≤ 50 字、描述 32–256 字、亮点、截图。每月 28 号出刊。 |
 | [bmpi-dev/awesome-seo](https://github.com/bmpi-dev/awesome-seo) | SEO 工具（偏好开源） | 英文界面 + 有真实使用后 | 精选清单，看成熟度。描述保持中性，太新可能被拒，等有使用证据再投。 |
 | awesome-privacy 类清单 | 自托管分析替代品 | 英文界面后 | 主打自托管 + 不开放注册；**不要写「无 Cookie」**——tracker 用 localStorage 存访客 id，要老实说。 |
 | AlternativeTo / OpenAlternative / SaaSHub | Umami/Plausible/GA 替代品页 | 现在（网页表单） | 定位写「店铺运营替代」，不要写成 GA 克隆，带 Shopify/Woo/GEO 关键词。 |
-| Product Hunt | 发布曝光 | 英文界面 + 在线演示或 3 分钟视频后 | 中文界面去打 PH 是浪费机会。 |
-| Hacker News（Show HN） | 开发者/店主 | 英文界面后 | 标题见下。首评必须写清技术栈、不是什么、演示账号。 |
+| Product Hunt | 发布曝光 | 英文界面已上线，有在线演示或 3 分钟视频后 | 中文界面去打 PH 是浪费机会。 |
+| Hacker News（Show HN） | 开发者/店主 | 英文界面已上线，可投 | 标题见下。首评必须写清技术栈、不是什么、演示账号。 |
 | Reddit r/selfhosted、r/shopify、r/woocommerce | 运营者 | 现在可发求反馈帖，别发广告帖 | 「我把生产站点的监控提炼开源了，还缺什么？」比发布帖有效，附路线图链接。 |
 | V2EX、掘金、少数派、小众软件、HelloGitHub | 国内开发者/独立开发者 | 现在 | 角度：青椒官网背后的监控，怎么提炼成独立站能用的开源版。附 qingjiaolab.com 链接。HelloGitHub 在其官网/仓库按当期格式自荐。 |
 | GitHubDaily 等推荐号 | GitHub 项目推荐 | 有英文界面和演示后 | 私信/投稿时给一句话介绍 + 演示账号 + 截图，不要只丢链接。 |
