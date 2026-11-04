@@ -480,6 +480,20 @@ def build_search(db: Session, *, days: int = 28, region: str = "all") -> dict[st
     }
 
 
+def mask_ip(ip: str) -> str:
+    """Never hand a full visitor IP to the console: 203.0.113.42 -> 203.0.113.*"""
+    text = str(ip or "").strip()
+    if not text or "*" in text:
+        return text
+    if ":" in text:  # IPv6: keep the first three groups only
+        parts = [part for part in text.split(":") if part]
+        return ":".join(parts[:3]) + ":*" if len(parts) > 3 else text
+    parts = text.split(".")
+    if len(parts) == 4:
+        return ".".join(parts[:3] + ["*"])
+    return text
+
+
 def visitor_view(row: Visitor) -> dict[str, Any]:
     return {
         "id": row.id,
@@ -491,7 +505,7 @@ def visitor_view(row: Visitor) -> dict[str, Any]:
         "kind": row.kind,
         "kind_label": KIND_LABELS.get(row.kind, row.kind),
         "place": row.place,
-        "ip": row.ip,
+        "ip": mask_ip(row.ip),
         "device": row.device,
         "referrer": row.referrer,
         "source": row.source,
@@ -594,7 +608,7 @@ def list_events(
                 "title": row.title,
                 "source": row.source,
                 "account": row.account,
-                "ip": row.ip,
+                "ip": mask_ip(row.ip),
                 "device": row.device,
             }
             for row in rows
@@ -637,7 +651,7 @@ def list_crawls(
                 "region": row.region,
                 "engine": row.engine,
                 "label": row.label,
-                "ip": row.ip,
+                "ip": mask_ip(row.ip),
                 "path": row.path,
                 "status": row.status,
                 "verified": row.verified,

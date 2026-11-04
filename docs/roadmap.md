@@ -23,9 +23,9 @@ store operator whether that traffic came from search/AI, and whether it paid.*
 
 These are the gaps a stranger hits in the first week. Rough order:
 
-1. **English UI (i18n toggle).** The README is bilingual; the console is
-   Chinese-only today. This is the single biggest blocker for overseas
-   operators and for most awesome-list reviewers.
+1. ~~**English UI (i18n toggle).**~~ **Shipped**: a 中文/EN toggle in the
+   console header; English screenshots are in the English README. Long-tail
+   strings keep being filled in.
 2. **Realtime.** “Who is on the store right now” (last 5/30 min, live page,
    live source). Umami/Plausible users expect it; SiteLens only has 7/28/90-day
    windows.

@@ -24,7 +24,7 @@ Shopify, WooCommerce, or a China + international pair. Your SQLite. No public si
 </div>
 
 <p align="center">
-  <img src="docs/screenshots/overview.png" alt="SiteLens overview: unique visitors, product views, add-to-cart, checkout, paid orders, identified users, China vs international funnel" width="960">
+  <img src="docs/screenshots/en/overview.png" alt="SiteLens overview: unique visitors, product views, add-to-cart, checkout, paid orders, identified users, China vs international funnel" width="960">
 </p>
 
 > **Real site behind it, demo data in front of you.** SiteLens is extracted from the production ops monitoring behind **[qingjiaolab.com](https://qingjiaolab.com)** — 青椒智能脱敏 (Qingjiao Data Redaction), private document redaction before files go to AI. Visit the live site to see the product whose traffic, crawlers, and AI mentions this console was built to watch. Every screenshot in this README is a **mock demo store** (流明好物 / Lumen Goods) on purpose: no real Qingjiao traffic, accounts, or orders are shown.
@@ -53,9 +53,9 @@ SiteLens is the one private console that puts those four questions on one desk:
 Built for people who run a store, not for people who collect event soup.
 
 <p align="center">
-  <img src="docs/screenshots/login.png" alt="SiteLens login: independent-site ops console" width="460">
+  <img src="docs/screenshots/en/login.png" alt="SiteLens login: independent-site ops console" width="460">
   &nbsp;
-  <img src="docs/screenshots/site.png" alt="Site analysis with human traffic, sources, and search-engine crawl KPI" width="460">
+  <img src="docs/screenshots/en/site.png" alt="Site analysis with human traffic, sources, and search-engine crawl KPI" width="460">
 </p>
 
 ## The console (real pages)
@@ -69,7 +69,7 @@ UV / PV, product views, cart, checkout, paid orders, identified users. China vs 
 This was always in the product. It belongs on the README.
 
 <p align="center">
-  <img src="docs/screenshots/seo.png" alt="SEO tab: Baidu, Google and other crawler hits, plus sources from Google, Baidu, Xiaohongshu and Zhihu" width="960">
+  <img src="docs/screenshots/en/seo.png" alt="SEO tab: Baidu, Google and other crawler hits, plus sources from Google, Baidu, Xiaohongshu and Zhihu" width="960">
 </p>
 
 After you paste `tracker.js`, SiteLens classifies every hit:
@@ -87,7 +87,7 @@ Open **站点 / SEO / GEO → 搜索引擎与 AI 抓取**. The sixth KPI on that
 ### 3. GEO — will AI recommend your store this week?
 
 <p align="center">
-  <img src="docs/screenshots/geo.png" alt="GEO panel: 15 answer platforms, citations, brand mentions, DeepSeek and Perplexity rows" width="960">
+  <img src="docs/screenshots/en/geo.png" alt="GEO panel: 15 answer platforms, citations, brand mentions, DeepSeek and Perplexity rows" width="960">
 </p>
 
 Fifteen consumer answer engines ship in the box:
@@ -102,9 +102,9 @@ Protocol: [docs/geo-agent.md](docs/geo-agent.md).
 ### 4. Identified visitors and paid orders
 
 <p align="center">
-  <img src="docs/screenshots/visitors.png" alt="Identified store visitors with account, region, source and cart/order behavior" width="460">
+  <img src="docs/screenshots/en/visitors.png" alt="Identified store visitors with account, region, source and cart/order behavior" width="460">
   &nbsp;
-  <img src="docs/screenshots/orders.png" alt="Paid revenue, orders by product, refunds" width="460">
+  <img src="docs/screenshots/en/orders.png" alt="Paid revenue, orders by product, refunds" width="460">
 </p>
 
 - Call `sitelens.identify(email)` after login or the visitors page stays empty
@@ -114,7 +114,7 @@ Protocol: [docs/geo-agent.md](docs/geo-agent.md).
 ### 5. Settings — a setup workbench, not a long form
 
 <p align="center">
-  <img src="docs/screenshots/settings.png" alt="Settings workbench: setup status, tracker snippets for China and international stores, identify and purchase examples" width="920">
+  <img src="docs/screenshots/en/settings.png" alt="Settings workbench: setup status, tracker snippets for China and international stores, identify and purchase examples" width="920">
 </p>
 
 Brand, aliases, `cn_hosts` / `intl_hosts`, collect token, Shopify / Woo / generic secrets, daily alert webhook, GEO agent token. Production (`SITELENS_ENV=production`) refuses an open collect endpoint.

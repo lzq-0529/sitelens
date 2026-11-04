@@ -1,9 +1,10 @@
 import { AuditOutlined, DashboardOutlined, GlobalOutlined, LogoutOutlined, MoneyCollectOutlined, SettingOutlined, TeamOutlined } from "@ant-design/icons";
 import { PageLoading, ProLayout } from "@ant-design/pro-components";
-import { Dropdown, Tag } from "antd";
+import { Dropdown, Space, Tag } from "antd";
 import { lazy, Suspense } from "react";
 import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { BrandLogo, useAuth } from "./auth";
+import { LangToggle, useT } from "./i18n";
 
 const page = (load, name) => lazy(() => load().then((module) => ({ default: module[name] })));
 const OverviewPage = page(() => import("./pages/overview"), "OverviewPage");
@@ -13,19 +14,19 @@ const OrdersPage = page(() => import("./pages/orders"), "OrdersPage");
 const UsersPage = page(() => import("./pages/users"), "UsersPage");
 const SettingsPage = page(() => import("./pages/settings"), "SettingsPage");
 
-const ROUTES = [
-  { path: "/overview", name: "流量与总览", icon: <DashboardOutlined />, element: <OverviewPage /> },
-  { path: "/site", name: "站点 / SEO / GEO", icon: <GlobalOutlined />, element: <SitePage /> },
-  { path: "/visitors", name: "网站用户与行为", icon: <TeamOutlined />, element: <VisitorsPage /> },
-  { path: "/orders", name: "订单与收入", icon: <MoneyCollectOutlined />, element: <OrdersPage /> },
-  { path: "/settings", name: "接入设置", icon: <SettingOutlined />, element: <SettingsPage /> },
-  { path: "/users", name: "后台账号与审计", icon: <AuditOutlined />, element: <UsersPage />, ownerOnly: true },
-];
-
 export function ConsoleLayout() {
+  const t = useT();
   const { user, logout, isOwner } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const ROUTES = [
+    { path: "/overview", name: t("流量与总览", "Overview"), icon: <DashboardOutlined />, element: <OverviewPage /> },
+    { path: "/site", name: t("站点 / SEO / GEO", "Site / SEO / GEO"), icon: <GlobalOutlined />, element: <SitePage /> },
+    { path: "/visitors", name: t("网站用户与行为", "Visitors & behaviour"), icon: <TeamOutlined />, element: <VisitorsPage /> },
+    { path: "/orders", name: t("订单与收入", "Orders & revenue"), icon: <MoneyCollectOutlined />, element: <OrdersPage /> },
+    { path: "/settings", name: t("接入设置", "Setup"), icon: <SettingOutlined />, element: <SettingsPage /> },
+    { path: "/users", name: t("后台账号与审计", "Accounts & audit"), icon: <AuditOutlined />, element: <UsersPage />, ownerOnly: true },
+  ];
   const routes = ROUTES.filter((route) => !route.ownerOnly || isOwner);
   return (
     <ProLayout
@@ -39,15 +40,18 @@ export function ConsoleLayout() {
       route={{ path: "/", routes: routes.map(({ path, name, icon }) => ({ path, name, icon })) }}
       menuItemRender={(item, dom) => <a onClick={() => navigate(item.path)}>{dom}</a>}
       actionsRender={() => [
-        <Tag key="env" color="success" style={{ margin: 0 }}>
-          流量 · SEO · 下单 · GEO
-        </Tag>,
+        <Space key="actions" size={10}>
+          <Tag color="success" style={{ margin: 0 }}>
+            {t("流量 · SEO · 下单 · GEO", "Traffic · SEO · Orders · GEO")}
+          </Tag>
+          <LangToggle />
+        </Space>,
       ]}
       avatarProps={{
-        title: `${user.display_name}（${isOwner ? "管理员" : "只读"}）`,
+        title: `${user.display_name} (${isOwner ? t("管理员", "Owner") : t("只读", "Viewer")})`,
         size: "small",
         render: (_props, dom) => (
-          <Dropdown menu={{ items: [{ key: "logout", icon: <LogoutOutlined />, label: "退出登录", onClick: logout }] }}>{dom}</Dropdown>
+          <Dropdown menu={{ items: [{ key: "logout", icon: <LogoutOutlined />, label: t("退出登录", "Sign out"), onClick: logout }] }}>{dom}</Dropdown>
         ),
       }}
       token={{

@@ -125,6 +125,23 @@ class HardeningTest(unittest.TestCase):
         self.assertEqual(source_of("https://unknown-shop-domain.example/0000000000", "?utm_source=α"), "α")
         self.assertEqual(source_of("", "newsletter"), "newsletter")
 
+    def test_source_taxonomy_covers_cn_and_overseas_platforms(self):
+        self.assertEqual(source_of("https://www.zhihu.com/question/1", ""), "知乎")
+        self.assertEqual(source_of("https://www.xiaohongshu.com/explore/1", ""), "小红书")
+        self.assertEqual(source_of("https://www.reddit.com/r/shopify/comments/1", ""), "Reddit")
+        self.assertEqual(source_of("https://www.producthunt.com/products/x", ""), "Product Hunt")
+        self.assertEqual(source_of("https://news.ycombinator.com/item?id=1", ""), "Hacker News")
+        self.assertEqual(source_of("https://www.linkedin.com/company/x", ""), "LinkedIn")
+        self.assertEqual(source_of("", "?utm_source=producthunt"), "Product Hunt")
+        self.assertEqual(source_of("", "?utm_source=zhihu_answer"), "知乎")
+        self.assertEqual(source_of("https://chatgpt.com/share/1", ""), "ChatGPT")
+
+    def test_mask_ip_hides_last_octet(self):
+        from sitelens.analytics import mask_ip
+
+        self.assertEqual(mask_ip("203.0.113.42"), "203.0.113.*")
+        self.assertEqual(mask_ip(""), "")
+
     def test_order_region_aliases(self):
         owner = self.login()
         overseas = owner.post("/api/admin/orders", json={"title": "Overseas", "amount": 50, "region": "overseas"}).json()

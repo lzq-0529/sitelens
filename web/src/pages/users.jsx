@@ -5,6 +5,7 @@ import { useRef, useState } from "react";
 import { api, tableRequest, time } from "../api";
 import { useAuth } from "../auth";
 import { DataTable } from "../components";
+import { useT } from "../i18n";
 
 const ROLES = { owner: "管理员", viewer: "只读" };
 const ACTIONS = {
@@ -21,10 +22,11 @@ const ACTIONS = {
 };
 
 export function UsersPage() {
+  const t = useT();
   return (
-    <PageContainer subTitle="后台不开放注册：管理员在这里建号。只读账号能看流量、下单和 GEO，不能改。">
+    <PageContainer subTitle={t("后台不开放注册：管理员在这里建号。只读账号能看流量、下单和 GEO，不能改。", "No public signup: owners create accounts here. Viewers can read traffic, orders and GEO.")}>
       <ProCard bordered bodyStyle={{ paddingTop: 4 }}>
-        <Tabs items={[{ key: "users", label: "账号", children: <UserTable /> }, { key: "audit", label: "操作记录", children: <AuditTable /> }]} />
+        <Tabs items={[{ key: "users", label: t("账号", "Accounts"), children: <UserTable /> }, { key: "audit", label: t("操作记录", "Audit log"), children: <AuditTable /> }]} />
       </ProCard>
     </PageContainer>
   );

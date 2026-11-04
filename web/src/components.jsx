@@ -2,6 +2,7 @@ import { Column, Line } from "@ant-design/plots";
 import { ProCard, ProTable } from "@ant-design/pro-components";
 import { Alert, Empty, Segmented, Skeleton, Table, Tag } from "antd";
 import { useCallback, useEffect, useState } from "react";
+import { deviceLabel, engineLabel, sourceLabel, useLang, useT } from "./i18n";
 
 export function useLoad(loader, deps) {
   const [state, setState] = useState({ data: null, loading: true, error: "" });
@@ -54,6 +55,7 @@ export function DataTable({ columns, search, pagination, ...props }) {
 }
 
 export function Kpis({ items, loading, cols = 6 }) {
+  const t = useT();
   const colClass = cols === 4 ? "cols-4" : cols === 5 ? "cols-5" : "";
   return (
     <div className={`sl-kpi-grid ${colClass}`.trim()}>
@@ -70,7 +72,7 @@ export function Kpis({ items, loading, cols = 6 }) {
           </div>
           {loading ? <Skeleton.Button active size="small" style={{ width: 96, height: 28 }} /> : <div className="sl-kpi-value">{item.value ?? 0}</div>}
           <div className="sl-kpi-foot">
-            <span>{item.hint || "实时统计"}</span>
+            <span>{item.hint || t("实时统计", "Live")}</span>
             {item.sub && <span>{item.sub}</span>}
           </div>
         </div>
@@ -80,6 +82,7 @@ export function Kpis({ items, loading, cols = 6 }) {
 }
 
 export function RankTable({ title, rows, columns, pageSize = 6, height = 276, extra }) {
+  const t = useT();
   const data = (rows || []).map((row, index) => ({ ...row, _key: index }));
   return (
     <ProCard title={title} bordered size="small" extra={extra} className="sl-equal-card">
@@ -91,17 +94,18 @@ export function RankTable({ title, rows, columns, pageSize = 6, height = 276, ex
           columns={columns}
           pagination={data.length > pageSize ? { pageSize, size: "small", showSizeChanger: false } : false}
           scroll={{ y: height - 46, x: "max-content" }}
-          locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无数据" /> }}
+          locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t("暂无数据", "No data")} /> }}
         />
       </div>
     </ProCard>
   );
 }
 
-function NoData({ height, text = "该时间段暂无记录" }) {
+function NoData({ height, text }) {
+  const t = useT();
   return (
     <div style={{ height, display: "grid", placeItems: "center", background: "#f8fafc", borderRadius: 8 }}>
-      <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={text} />
+      <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={text || t("该时间段暂无记录", "No records in this period")} />
     </div>
   );
 }
@@ -138,38 +142,55 @@ export function DailyLines({ data, height = 300 }) {
 }
 
 export function DaysSwitch({ value, onChange, options = [7, 28, 90] }) {
-  return <Segmented value={value} onChange={onChange} options={options.map((days) => ({ value: days, label: `近 ${days} 天` }))} />;
+  const t = useT();
+  return <Segmented value={value} onChange={onChange} options={options.map((days) => ({ value: days, label: t(`近 ${days} 天`, `${days}d`) }))} />;
 }
 
 export function RegionSwitch({ value, onChange }) {
+  const t = useT();
   return (
     <Segmented
       value={value}
       onChange={onChange}
       options={[
-        { value: "all", label: "🌐 国内外汇总" },
-        { value: "cn", label: "🇨🇳 国内站" },
-        { value: "intl", label: "🌍 海外站" },
+        { value: "all", label: t("🌐 国内外汇总", "🌐 All regions") },
+        { value: "cn", label: t("🇨🇳 国内站", "🇨🇳 China") },
+        { value: "intl", label: t("🌍 海外站", "🌍 International") },
       ]}
     />
   );
 }
 
 export function RegionTag({ region }) {
-  if (region === "intl" || region === "global") return <Tag color="purple">🌍 海外</Tag>;
-  if (region === "cn") return <Tag color="blue">🇨🇳 国内</Tag>;
-  return <Tag color="cyan">🌐 全区</Tag>;
+  const t = useT();
+  if (region === "intl" || region === "global") return <Tag color="purple">{t("🌍 海外", "🌍 Intl")}</Tag>;
+  if (region === "cn") return <Tag color="blue">{t("🇨🇳 国内", "🇨🇳 CN")}</Tag>;
+  return <Tag color="cyan">{t("🌐 全区", "🌐 All")}</Tag>;
 }
 
+const SOURCE_COLORS = [
+  [/知乎|小红书|微信|抖音|快手|B站|微博|头条|飞书|Zhihu|Xiaohongshu|WeChat|Douyin|Bilibili|Instagram|Pinterest|TikTok|YouTube/, "green"],
+  [/百度|夸克|搜狗|神马|Google|Bing|DuckDuckGo|Brave|Yahoo|Yandex|Baidu|Quark|Sogou/, "blue"],
+  [/ChatGPT|Perplexity|Claude|Gemini|Copilot|DeepSeek|Grok|豆包|Kimi/, "purple"],
+  [/Reddit|Product Hunt|Hacker News|Quora|Medium|Substack|GitHub|LinkedIn|X$|Facebook|CSDN|掘金|Juejin/, "orange"],
+];
+
 export function SourceTag({ value }) {
-  const text = String(value || "").trim() || "直接访问";
+  const { isEn } = useLang();
+  const raw = String(value || "").trim() || "直接访问";
+  const text = sourceLabel(raw, isEn);
   let color = "default";
-  if (/知乎|小红书|抖音|头条|B站|微博|Instagram|Pinterest/.test(text)) color = "green";
-  else if (/百度|Google|Bing|Yahoo|搜狗/.test(text)) color = "blue";
-  else if (/微信|企业微信/.test(text)) color = "cyan";
+  for (const [pattern, candidate] of SOURCE_COLORS) {
+    if (pattern.test(raw) || pattern.test(text)) {
+      color = candidate;
+      break;
+    }
+  }
   return (
     <Tag color={color} style={{ margin: 0, maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis" }} title={text}>
       {text}
     </Tag>
   );
 }
+
+export { deviceLabel, engineLabel };

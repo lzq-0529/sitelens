@@ -103,11 +103,52 @@ async function nav(urlPath) {
   return fonts;
 }
 
+let outDir = OUT;
 async function shot(name) {
   const result = await cmd("Page.captureScreenshot", { format: "png", captureBeyondViewport: false });
-  const file = path.join(OUT, `${name}.png`);
+  fs.mkdirSync(outDir, { recursive: true });
+  const file = path.join(outDir, `${name}.png`);
   fs.writeFileSync(file, Buffer.from(result.data, "base64"));
   console.log("wrote", file, fs.statSync(file).size);
+}
+
+async function clickSegmented(label) {
+  return ev(`(() => {
+    const el = [...document.querySelectorAll(".ant-segmented-item, .ant-radio-button-wrapper")].find((x) => x.innerText.includes(${JSON.stringify(label)}));
+    if (!el) return false;
+    el.scrollIntoView();
+    el.click();
+    return true;
+  })()`);
+}
+
+async function captureSet({ seoTab, geoTab, focusRegion = "" }) {
+  console.log("overview", await nav("/overview"));
+  await shot("overview");
+  console.log("site", await nav("/site"));
+  if (focusRegion) {
+    console.log("focus region", focusRegion, await clickSegmented(focusRegion));
+    await sleep(2200);
+  }
+  await shot("site");
+  console.log("seo tab", await clickTab(seoTab));
+  await sleep(2200);
+  await shot("seo");
+  console.log("geo tab", await clickTab(geoTab));
+  await sleep(2200);
+  await shot("geo");
+  console.log("visitors", await nav("/visitors"));
+  if (focusRegion) {
+    console.log("visitors focus region", await clickSegmented(focusRegion));
+    await sleep(2200);
+    await ev("window.scrollTo(0, 0)");
+    await sleep(400);
+  }
+  await shot("visitors");
+  console.log("orders", await nav("/orders"));
+  await shot("orders");
+  console.log("settings", await nav("/settings"));
+  await shot("settings");
 }
 
 async function clickTab(label) {
@@ -130,35 +171,43 @@ try {
   await shot("login");
   await ev(`(() => {
     const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
-    const inputs = document.querySelectorAll("input");
+    const inputs = document.querySelectorAll(".sl-login-form input");
     set.call(inputs[0], "owner");
     inputs[0].dispatchEvent(new Event("input", { bubbles: true }));
     set.call(inputs[1], "sitelens-demo");
     inputs[1].dispatchEvent(new Event("input", { bubbles: true }));
-    const button = [...document.querySelectorAll("button")].find((el) => el.innerText.includes("进入监控台"));
+    const button = [...document.querySelectorAll("button")].find((el) => el.innerText.includes("进入监控台") || el.innerText.includes("Open console"));
     button?.click();
     return !!button;
   })()`);
   await sleep(3500);
 
-  console.log("overview", await nav("/overview"));
-  await shot("overview");
+  // Chinese set -> docs/screenshots/*.png
+  outDir = OUT;
+  await captureSet({ seoTab: "搜索引擎与 AI 抓取", geoTab: "AI 回答引用监测" });
 
-  console.log("site", await nav("/site"));
-  await shot("site");
-  console.log("seo tab", await clickTab("搜索引擎与 AI 抓取"));
-  await sleep(2200);
-  await shot("seo");
-  console.log("geo tab", await clickTab("AI 回答引用监测"));
-  await sleep(2200);
-  await shot("geo");
-
-  console.log("visitors", await nav("/visitors"));
-  await shot("visitors");
-  console.log("orders", await nav("/orders"));
-  await shot("orders");
-  console.log("settings", await nav("/settings"));
-  await shot("settings");
+  // English set -> docs/screenshots/en/*.png (same demo data, English UI,
+  // overseas sources/questions are already in the seed). Log out first so
+  // en/login.png is the real English login page, then sign back in.
+  await ev(`localStorage.setItem("sitelens-lang", "en")`);
+  outDir = path.join(OUT, "en");
+  await ev(`fetch("/api/admin/logout", { method: "POST" }).catch(() => {})`);
+  await sleep(1200);
+  console.log("en login", await nav("/overview"));
+  await shot("login");
+  await ev(`(() => {
+    const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
+    const inputs = document.querySelectorAll(".sl-login-form input");
+    set.call(inputs[0], "owner");
+    inputs[0].dispatchEvent(new Event("input", { bubbles: true }));
+    set.call(inputs[1], "sitelens-demo");
+    inputs[1].dispatchEvent(new Event("input", { bubbles: true }));
+    const button = [...document.querySelectorAll("button")].find((el) => el.innerText.includes("Open console"));
+    button?.click();
+    return !!button;
+  })()`);
+  await sleep(3500);
+  await captureSet({ seoTab: "Search & AI crawlers", geoTab: "AI citation watch", focusRegion: "International" });
 } finally {
   ws.close();
   chrome.kill("SIGTERM");

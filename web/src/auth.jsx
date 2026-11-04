@@ -2,6 +2,7 @@ import { LockOutlined, SafetyCertificateOutlined, UserOutlined } from "@ant-desi
 import { App, Button, Form, Input, Spin } from "antd";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { api } from "./api";
+import { LangToggle, useT } from "./i18n";
 
 const AuthContext = createContext(null);
 
@@ -34,7 +35,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   const value = useMemo(() => ({ user, setUser, logout, isOwner: user?.role === "owner" }), [user, logout]);
-  if (!ready) return <Spin fullscreen tip="正在加载…" />;
+  if (!ready) return <Spin fullscreen />;
   return <AuthContext.Provider value={value}>{user ? children : <LoginPage onSignedIn={setUser} />}</AuthContext.Provider>;
 }
 
@@ -43,6 +44,7 @@ export function useAuth() {
 }
 
 function LoginPage({ onSignedIn }) {
+  const t = useT();
   const { message } = App.useApp();
   const [submitting, setSubmitting] = useState(false);
 
@@ -51,7 +53,7 @@ function LoginPage({ onSignedIn }) {
     try {
       onSignedIn(await api("/api/admin/login", { method: "POST", body: values }));
     } catch (exc) {
-      message.error(exc.message || "登录失败");
+      message.error(exc.message || t("登录失败", "Sign-in failed"));
     } finally {
       setSubmitting(false);
     }
@@ -63,28 +65,31 @@ function LoginPage({ onSignedIn }) {
         <div className="sl-login-head">
           <div className="sl-login-brand">
             <BrandLogo size={40} />
-            <span className="sl-login-badge">INDEPENDENT SITES</span>
+            <span style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <span className="sl-login-badge">INDEPENDENT SITES</span>
+              <LangToggle />
+            </span>
           </div>
-          <h1 className="sl-login-title">SiteLens 独立站监控台</h1>
-          <p className="sl-login-subtitle">流量 · SEO 抓取 · 下单转化 · GEO 问答</p>
+          <h1 className="sl-login-title">{t("SiteLens 独立站监控台", "SiteLens store ops console")}</h1>
+          <p className="sl-login-subtitle">{t("流量 · SEO 抓取 · 下单转化 · GEO 问答", "Traffic · SEO crawlers · Checkout · GEO answers")}</p>
         </div>
         <Form layout="vertical" requiredMark={false} onFinish={handleFinish} className="sl-login-form">
-          <Form.Item label="管理账号" name="username" rules={[{ required: true, message: "请输入用户名" }]}>
-            <Input prefix={<UserOutlined className="sl-login-input-icon" />} placeholder="用户名" />
+          <Form.Item label={t("管理账号", "Admin account")} name="username" rules={[{ required: true, message: t("请输入用户名", "Enter username") }]}>
+            <Input prefix={<UserOutlined className="sl-login-input-icon" />} placeholder={t("用户名", "Username")} />
           </Form.Item>
-          <Form.Item label="密码" name="password" rules={[{ required: true, message: "请输入密码" }]}>
-            <Input.Password prefix={<LockOutlined className="sl-login-input-icon" />} placeholder="密码" />
+          <Form.Item label={t("密码", "Password")} name="password" rules={[{ required: true, message: t("请输入密码", "Enter password") }]}>
+            <Input.Password prefix={<LockOutlined className="sl-login-input-icon" />} placeholder={t("密码", "Password")} />
           </Form.Item>
           <Button htmlType="submit" block loading={submitting} className="sl-login-submit">
-            进入监控台
+            {t("进入监控台", "Open console")}
           </Button>
         </Form>
         <p className="sl-login-demo">
-          本地演示账号 <code>owner</code>　密码 <code>sitelens-demo</code>
+          {t("本地演示账号", "Local demo")} <code>owner</code> {t("密码", "password")} <code>sitelens-demo</code>
         </p>
         <div className="sl-login-foot">
           <SafetyCertificateOutlined />
-          后台不开放注册，不对外收录
+          {t("后台不开放注册，不对外收录", "No public signup. Console is not indexed.")}
         </div>
       </div>
     </div>
