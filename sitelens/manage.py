@@ -4,12 +4,16 @@
     python -m sitelens.manage reset-password --username me
     python -m sitelens.manage seed-demo
     python -m sitelens.manage show-geo-token
+    python -m sitelens.manage tick
+    python -m sitelens.manage geo-agent --dry-run
 """
 
 from __future__ import annotations
 
 import argparse
 import getpass
+import json
+import secrets
 import sys
 
 from sqlalchemy import select
@@ -42,6 +46,13 @@ def main(argv: list[str] | None = None) -> None:
     demo.add_argument("--username", default="owner")
     demo.add_argument("--password", default="sitelens-demo")
     sub.add_parser("show-geo-token")
+    sub.add_parser("show-cron-token")
+    tick_cmd = sub.add_parser("tick")
+    tick_cmd.add_argument("--force", action="store_true")
+    geo = sub.add_parser("geo-agent")
+    geo.add_argument("--base-url", default="")
+    geo.add_argument("--token", default="")
+    geo.add_argument("--dry-run", action="store_true")
     args = parser.parse_args(argv)
 
     db_module.init_db()
@@ -49,6 +60,17 @@ def main(argv: list[str] | None = None) -> None:
         if args.command == "create-owner":
             user = create_user(session, args.username, _password(args), role=OWNER, display_name=args.display_name)
             audit(session, user, "create_owner_cli", user.username)
+            from .siteconfig import load_site, save_site
+
+            site = load_site(session)
+            if not site.get("collect_token") or not site.get("hook_token"):
+                save_site(
+                    session,
+                    {
+                        "collect_token": site.get("collect_token") or "slcol_" + secrets.token_urlsafe(18),
+                        "hook_token": site.get("hook_token") or "slhook_" + secrets.token_urlsafe(18),
+                    },
+                )
             print(f"已创建管理员：{user.username}")
         elif args.command == "reset-password":
             user = session.scalar(select(User).where(User.username == args.username))
@@ -62,6 +84,18 @@ def main(argv: list[str] | None = None) -> None:
         elif args.command == "seed-demo":
             result = seed_demo(session, owner_username=args.username, owner_password=args.password)
             print(result)
+        elif args.command == "tick":
+            from .alerts import tick
+
+            print(tick(session, force=args.force))
+        elif args.command == "geo-agent":
+            from .geo_agent import run
+
+            token = args.token or config.geo_token()
+            base = args.base_url or "http://127.0.0.1:8788"
+            print(json.dumps(run(base, token, dry_run=args.dry_run), ensure_ascii=False, indent=2))
+        elif args.command == "show-cron-token":
+            print(config.cron_token())
         else:
             print(config.geo_token())
         session.commit()

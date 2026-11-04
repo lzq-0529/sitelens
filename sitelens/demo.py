@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import random
+import secrets
 from datetime import timedelta
 
 from sqlalchemy import select
@@ -11,7 +12,7 @@ from .auth import OWNER, create_user
 from .geo import ingest_results
 from .models import Event, User, utcnow
 from .orders import create_order
-from .siteconfig import save_site
+from .siteconfig import load_site, save_site
 
 SOURCES = ("直接访问", "Google", "百度", "小红书", "知乎", "Instagram", "Pinterest")
 PATHS = ("/", "/products/wool-throw", "/products/pour-over", "/collections/home", "/cart", "/checkout")
@@ -25,6 +26,7 @@ SKUS = (
 def seed_demo(db: Session, *, owner_username: str = "owner", owner_password: str = "sitelens-demo") -> dict:
     if db.scalar(select(User).where(User.username == owner_username)) is None:
         create_user(db, owner_username, owner_password, role=OWNER, display_name="站点管理员")
+    current = load_site(db)
     save_site(
         db,
         {
@@ -32,7 +34,11 @@ def seed_demo(db: Session, *, owner_username: str = "owner", owner_password: str
             "brand_aliases": ["Lumen Goods", "lumen.shop"],
             "category": "家居与生活方式",
             "domains": ["lumen.shop", "www.lumen.shop"],
+            "cn_hosts": ["lumen.shop", "www.lumen.shop"],
+            "intl_hosts": ["intl.lumen.shop"],
             "competitors": ["示例竞品"],
+            "collect_token": current.get("collect_token") or "slcol_" + secrets.token_urlsafe(18),
+            "hook_token": current.get("hook_token") or "slhook_" + secrets.token_urlsafe(18),
         },
     )
     if db.scalar(select(Event.id)) is not None:
@@ -113,4 +119,11 @@ def seed_demo(db: Session, *, owner_username: str = "owner", owner_password: str
     )
     rng.random()
     db.flush()
-    return {"ok": True, "seeded": True, "owner": owner_username}
+    site = load_site(db)
+    return {
+        "ok": True,
+        "seeded": True,
+        "owner": owner_username,
+        "collect_token": site.get("collect_token") or "",
+        "hook_token": site.get("hook_token") or "",
+    }

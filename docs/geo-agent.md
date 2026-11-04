@@ -2,7 +2,7 @@
 
 SiteLens does not crawl chat UIs itself. A weekly agent pulls the due platforms and prompts, asks them, then posts the answers back.
 
-Default schedule is **weekly**. Switch to daily in 站点与 GEO 接入.
+Default schedule is **weekly**. Switch to daily in 接入设置.
 
 ## Auth
 
@@ -39,3 +39,19 @@ Returns 15 consumer answer engines (DeepSeek, 豆包, Kimi, 通义, 文心, 清�
 ```
 
 Scoring is generic: configured brand names, domains, owned URLs, keywords, and competitors. There is no product-specific vocabulary baked in.
+
+## Smallest built-in agent
+
+```bash
+python -m sitelens.manage geo-agent --dry-run
+```
+
+That only prints due platforms. To ask a model and ingest:
+
+```bash
+export SITELENS_LLM_URL=https://api.openai.com/v1
+export SITELENS_LLM_KEY=sk-...
+python -m sitelens.manage geo-agent --base-url http://127.0.0.1:8788
+```
+
+Put that on a weekly cron. SiteLens will not remember to crawl the 15 UIs by itself.

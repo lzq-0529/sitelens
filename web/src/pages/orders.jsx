@@ -41,7 +41,7 @@ export function OrdersPage() {
           </ProCard>
         </Col>
         <Col xs={24} xl={8}>
-          <RankTable title="按商品" height={260} rows={s?.by_plan} columns={[{ title: "商品", dataIndex: "label" }, { title: "金额", dataIndex: "cents", align: "right", render: money }]} />
+            <RankTable title="按商品" height={260} rows={s?.by_product || s?.by_plan} columns={[{ title: "商品", dataIndex: "label" }, { title: "金额", dataIndex: "cents", align: "right", render: (cents) => money(cents) }]} />
         </Col>
       </Row>
       <DataTable
@@ -54,7 +54,7 @@ export function OrdersPage() {
           { title: "时间", dataIndex: "at", renderText: time, width: 160 },
           { title: "商品", dataIndex: "title", ellipsis: true },
           { title: "SKU", dataIndex: "sku", width: 120, renderText: (v) => v || "—" },
-          { title: "区域", dataIndex: "edition", width: 90, valueType: "select", valueEnum: { cn: { text: "国内" }, intl: { text: "海外" } }, filter: true, render: (_, row) => <RegionTag region={row.region} /> },
+          { title: "区域", dataIndex: "region", width: 90, valueType: "select", valueEnum: { cn: { text: "国内" }, intl: { text: "海外" } }, filter: true, render: (_, row) => <RegionTag region={row.region} /> },
           { title: "金额", dataIndex: "amount_cents", align: "right", render: (_, row) => <b>{money(row.amount_cents, row.currency)}</b> },
           { title: "渠道", dataIndex: "channel" },
           { title: "状态", dataIndex: "status", valueType: "select", valueEnum: STATUS, filter: true },

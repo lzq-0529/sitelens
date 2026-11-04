@@ -15,6 +15,7 @@ SessionLocal: sessionmaker | None = None
 def init_db(url: str | None = None) -> None:
     global engine, SessionLocal
     url = url or config.database_url()
+    previous = engine
     sqlite = url.startswith("sqlite")
     engine = create_engine(url, future=True, connect_args={"check_same_thread": False} if sqlite else {})
     if sqlite:
@@ -28,6 +29,8 @@ def init_db(url: str | None = None) -> None:
 
     SessionLocal = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False, future=True)
     Base.metadata.create_all(engine)
+    if previous is not None and previous is not engine:
+        previous.dispose()
 
 
 def get_db() -> Generator[Session, None, None]:

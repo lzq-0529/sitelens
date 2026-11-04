@@ -45,7 +45,6 @@ SOURCE_RULES: tuple[tuple[str, str], ...] = (
     (r"facebook|instagram", "Meta"),
     (r"pinterest", "Pinterest"),
     (r"reddit", "Reddit"),
-    (r"utm_source=(\w+)", ""),
 )
 
 
@@ -66,13 +65,18 @@ def source_of(referrer: str, utm: str = "") -> str:
     if not blob:
         return "直接访问"
     lowered = blob.lower()
-    match = re.search(r"(?:utm_source|from)=([a-z0-9_\-]+)", lowered)
+    match = re.search(r"(?:utm_source|from)=([^\s&#]+)", lowered, flags=re.UNICODE)
     if match:
-        return match.group(1)
+        value = match.group(1).strip()
+        if value:
+            return value[:80]
     for pattern, label in SOURCE_RULES:
         if re.search(pattern, lowered, re.IGNORECASE):
-            return label or blob
-    host = re.sub(r"^https?://", "", referrer).split("/")[0]
+            return label
+    token = (utm or "").strip()
+    if token and not referrer and "=" not in token and "://" not in token:
+        return token[:80]
+    host = re.sub(r"^https?://", "", referrer or "").split("/")[0]
     return host or "直接访问"
 
 

@@ -8,8 +8,11 @@ from sqlalchemy.orm import Session
 
 from . import config
 from .analytics import (
+    MAX_DAYS,
     build_search,
     build_summary,
+    clamp_days,
+    contains_like,
     list_crawls,
     list_events,
     list_visitors,
@@ -32,6 +35,7 @@ from .db import get_db
 from .geo import geo_prompts, geo_report, ingest_results, save_geo_prompts
 from .models import AuditLog, User
 from .orders import create_order, list_orders, order_view, orders_summary, refund_order
+from .security import public_settings
 from .siteconfig import load_site, save_site
 
 router = APIRouter(prefix="/api/admin")
@@ -39,6 +43,10 @@ router = APIRouter(prefix="/api/admin")
 
 def _page(current: int, page_size: int) -> tuple[int, int]:
     return max(1, current), min(100, max(1, page_size))
+
+
+def _days(days: int, default: int = 28) -> int:
+    return clamp_days(days, default)
 
 
 @router.post("/login")
@@ -70,11 +78,12 @@ def me(user: User = Depends(current_user)):
 
 @router.get("/overview")
 def overview(
-    days: int = 28,
+    days: int = Query(28, ge=1, le=MAX_DAYS),
     region: str = "all",
     db: Session = Depends(get_db),
     _: User = Depends(current_user),
 ):
+    days = _days(days)
     site = build_summary(db, days=days, region=region or "all")
     revenue = orders_summary(db, days=days)
     return {"site": site, "revenue": revenue, "users": users_summary(db, region=region or "all")}
@@ -82,23 +91,28 @@ def overview(
 
 @router.get("/site/summary")
 def site_summary(
-    days: int = 28,
+    days: int = Query(28, ge=1, le=MAX_DAYS),
     scope: str = "human",
     region: str = "all",
     db: Session = Depends(get_db),
     _: User = Depends(current_user),
 ):
-    return build_summary(db, days=days, scope=scope, region=region)
+    return build_summary(db, days=_days(days), scope=scope, region=region)
 
 
 @router.get("/site/search")
-def site_search(days: int = 28, region: str = "all", db: Session = Depends(get_db), _: User = Depends(current_user)):
-    return build_search(db, days=days, region=region)
+def site_search(
+    days: int = Query(28, ge=1, le=MAX_DAYS),
+    region: str = "all",
+    db: Session = Depends(get_db),
+    _: User = Depends(current_user),
+):
+    return build_search(db, days=_days(days), region=region)
 
 
 @router.get("/site/visitors")
 def site_visitors(
-    days: int = 28,
+    days: int = Query(28, ge=1, le=MAX_DAYS),
     scope: str = "human",
     region: str = "all",
     q: str = "",
@@ -112,7 +126,7 @@ def site_visitors(
     current, pageSize = _page(current, pageSize)
     return list_visitors(
         db,
-        days=days,
+        days=_days(days),
         region=region,
         scope=scope,
         q=q,
@@ -125,7 +139,7 @@ def site_visitors(
 
 @router.get("/site/events")
 def site_events(
-    days: int = 28,
+    days: int = Query(28, ge=1, le=MAX_DAYS),
     region: str = "all",
     name: str = "",
     q: str = "",
@@ -135,12 +149,12 @@ def site_events(
     _: User = Depends(current_user),
 ):
     current, pageSize = _page(current, pageSize)
-    return list_events(db, days=days, region=region, name=name, q=q, current=current, page_size=pageSize)
+    return list_events(db, days=_days(days), region=region, name=name, q=q, current=current, page_size=pageSize)
 
 
 @router.get("/site/crawls")
 def site_crawls(
-    days: int = 28,
+    days: int = Query(28, ge=1, le=MAX_DAYS),
     region: str = "all",
     q: str = "",
     current: int = 1,
@@ -149,11 +163,12 @@ def site_crawls(
     _: User = Depends(current_user),
 ):
     current, pageSize = _page(current, pageSize)
-    return list_crawls(db, days=days, region=region, q=q, current=current, page_size=pageSize)
+    return list_crawls(db, days=_days(days), region=region, q=q, current=current, page_size=pageSize)
 
 
+@router.get("/visitors/summary")
 @router.get("/workbench/summary")
-def workbench_summary(region: str = "all", db: Session = Depends(get_db), _: User = Depends(current_user)):
+def visitors_summary(region: str = "all", db: Session = Depends(get_db), _: User = Depends(current_user)):
     return users_summary(db, region=region)
 
 
@@ -193,8 +208,12 @@ def post_prompts(payload: dict[str, Any], user: User = Depends(owner_user), db: 
 
 
 @router.get("/orders/summary")
-def admin_orders_summary(days: int = 30, db: Session = Depends(get_db), _: User = Depends(current_user)):
-    return orders_summary(db, days=days)
+def admin_orders_summary(
+    days: int = Query(30, ge=1, le=MAX_DAYS),
+    db: Session = Depends(get_db),
+    _: User = Depends(current_user),
+):
+    return orders_summary(db, days=_days(days, 30))
 
 
 @router.get("/orders")
@@ -202,6 +221,7 @@ def admin_list_orders(
     q: str = "",
     status: str = "",
     edition: str = "",
+    region: str = "",
     start: str = "",
     end: str = "",
     current: int = 1,
@@ -210,7 +230,7 @@ def admin_list_orders(
     _: User = Depends(current_user),
 ):
     current, pageSize = _page(current, pageSize)
-    return list_orders(db, q=q, status=status, region=edition, start=start, end=end, current=current, page_size=pageSize)
+    return list_orders(db, q=q, status=status, region=region or edition, start=start, end=end, current=current, page_size=pageSize)
 
 
 @router.post("/orders")
@@ -230,16 +250,27 @@ def admin_refund(order_id: str, user: User = Depends(owner_user), db: Session = 
 
 
 @router.get("/settings")
-def get_settings(db: Session = Depends(get_db), user: User = Depends(current_user)):
-    data = load_site(db)
+def get_settings(request: Request, db: Session = Depends(get_db), user: User = Depends(current_user)):
+    data = public_settings(load_site(db), owner=user.role == OWNER)
     if user.role == OWNER:
-        data = {**data, "ingest_token": config.geo_token()}
+        origin = str(request.base_url).rstrip("/")
+        data = {
+            **data,
+            "ingest_token": config.geo_token(),
+            "cron_token": config.cron_token(),
+            "hooks": {
+                "order": f"{origin}/api/hooks/order",
+                "shopify": f"{origin}/api/hooks/shopify",
+                "woocommerce": f"{origin}/api/hooks/woocommerce",
+                "cron": f"{origin}/api/cron/tick",
+            },
+        }
     return data
 
 
 @router.put("/settings")
 def put_settings(payload: dict[str, Any], user: User = Depends(owner_user), db: Session = Depends(get_db)):
-    data = save_site(db, payload)
+    data = public_settings(save_site(db, payload), owner=True)
     audit(db, user, "update_settings", data.get("brand") or "")
     db.commit()
     return data
@@ -256,8 +287,8 @@ def list_users(
     current, pageSize = _page(current, pageSize)
     stmt = select(User)
     if q:
-        like = f"%{q}%"
-        stmt = stmt.where(or_(User.username.like(like), User.display_name.like(like)))
+        like = contains_like(q)
+        stmt = stmt.where(or_(User.username.like(like, escape="\\"), User.display_name.like(like, escape="\\")))
     total = db.scalar(select(func.count()).select_from(stmt.order_by(None).subquery())) or 0
     rows = list(db.scalars(stmt.order_by(User.created_at).offset((current - 1) * pageSize).limit(pageSize)))
     return {"data": [user_view(row) for row in rows], "total": total, "success": True}
@@ -311,8 +342,8 @@ def list_audit(
     current, pageSize = _page(current, pageSize)
     stmt = select(AuditLog)
     if q:
-        like = f"%{q}%"
-        stmt = stmt.where(or_(AuditLog.action.like(like), AuditLog.detail.like(like)))
+        like = contains_like(q)
+        stmt = stmt.where(or_(AuditLog.action.like(like, escape="\\"), AuditLog.detail.like(like, escape="\\")))
     total = db.scalar(select(func.count()).select_from(stmt.order_by(None).subquery())) or 0
     rows = list(db.scalars(stmt.order_by(desc(AuditLog.at)).offset((current - 1) * pageSize).limit(pageSize)))
     return {

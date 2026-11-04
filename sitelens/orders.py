@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 from datetime import datetime, timezone
 from typing import Any
 
@@ -7,11 +8,62 @@ from fastapi import HTTPException
 from sqlalchemy import desc, func, or_, select
 from sqlalchemy.orm import Session
 
+from .analytics import contains_like
 from .auth import new_id
 from .models import Order, utcnow
-from .siteconfig import load_site
+from .siteconfig import infer_region, load_site
+
+SQLITE_MAX_INT = 2**63 - 1
+_NON_FINITE = {"inf", "+inf", "-inf", "nan", "infinity", "+infinity", "-infinity"}
+
+
+def parse_amount_cents(payload: dict[str, Any]) -> int:
+    if payload.get("amount_cents") is not None:
+        raw, scale = payload.get("amount_cents"), 1
+    elif payload.get("amount") is not None:
+        raw, scale = payload.get("amount"), 100
+    else:
+        raise HTTPException(status_code=400, detail="金额无效")
+    if isinstance(raw, bool) or isinstance(raw, (list, dict, tuple, set)):
+        raise HTTPException(status_code=400, detail="金额无效")
+    try:
+        if isinstance(raw, str):
+            text = raw.strip().replace(",", "")
+            if not text or text.lower() in _NON_FINITE:
+                raise ValueError("non-finite")
+            number = float(text)
+        else:
+            number = float(raw)
+        if not math.isfinite(number):
+            raise ValueError("non-finite")
+        cents = int(raw) if scale == 1 and isinstance(raw, int) else int(round(number * scale))
+    except (TypeError, ValueError, OverflowError) as exc:
+        raise HTTPException(status_code=400, detail="金额无效") from exc
+    if cents <= 0:
+        raise HTTPException(status_code=400, detail="订单金额必须大于 0")
+    if cents > SQLITE_MAX_INT:
+        raise HTTPException(status_code=400, detail="金额超出范围")
+    return cents
+
+
+def coerce_amount_cents(payload: dict[str, Any]) -> int | None:
+    try:
+        return parse_amount_cents(payload)
+    except HTTPException:
+        return None
 
 CHANNELS = ("独立站收银台", "微信", "支付宝", "Stripe", "PayPal", "Shopify", "对公转账", "其他")
+
+
+def _query_date(raw: str, *, end_of_day: bool = False) -> datetime:
+    text = (raw or "").strip()
+    if not text:
+        raise HTTPException(status_code=400, detail="日期无效")
+    try:
+        value = datetime.fromisoformat(text + "T23:59:59") if end_of_day and len(text) == 10 else datetime.fromisoformat(text)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail="日期无效") from exc
+    return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
 
 
 def _parse_at(raw: Any) -> datetime:
@@ -49,22 +101,18 @@ def order_view(row: Order) -> dict[str, Any]:
 
 
 def create_order(db: Session, payload: dict[str, Any]) -> Order:
-    amount = payload.get("amount_cents")
-    if amount is None:
-        try:
-            amount = int(round(float(payload.get("amount") or 0) * 100))
-        except (TypeError, ValueError) as exc:
-            raise HTTPException(status_code=400, detail="金额无效") from exc
-    amount = int(amount)
-    if amount <= 0:
-        raise HTTPException(status_code=400, detail="订单金额必须大于 0")
+    amount = parse_amount_cents(payload)
     site = load_site(db)
+    order_id = str(payload.get("id") or "").strip() or new_id()
+    existing = db.get(Order, order_id)
+    if existing is not None:
+        return existing
     row = Order(
-        id=str(payload.get("id") or new_id()),
+        id=order_id,
         at=_parse_at(payload.get("at")),
         sku=str(payload.get("sku") or "")[:80],
         title=str(payload.get("title") or payload.get("product") or "独立站订单")[:160],
-        region="intl" if str(payload.get("region") or payload.get("edition") or "cn") in {"intl", "global"} else "cn",
+        region=infer_region(site, str(payload.get("host") or ""), str(payload.get("region") or payload.get("edition") or "")),
         amount_cents=amount,
         currency=str(payload.get("currency") or site.get("currency") or "CNY")[:8],
         channel=str(payload.get("channel") or "独立站收银台")[:32],
@@ -103,16 +151,24 @@ def list_orders(
 ) -> dict[str, Any]:
     stmt = select(Order)
     if q:
-        like = f"%{q}%"
-        stmt = stmt.where(or_(Order.customer.like(like), Order.channel.like(like), Order.sku.like(like), Order.title.like(like), Order.note.like(like)))
+        like = contains_like(q)
+        stmt = stmt.where(
+            or_(
+                Order.customer.like(like, escape="\\"),
+                Order.channel.like(like, escape="\\"),
+                Order.sku.like(like, escape="\\"),
+                Order.title.like(like, escape="\\"),
+                Order.note.like(like, escape="\\"),
+            )
+        )
     if status:
         stmt = stmt.where(Order.status == status)
     if region in {"cn", "intl"}:
         stmt = stmt.where(Order.region == region)
     if start:
-        stmt = stmt.where(Order.at >= datetime.fromisoformat(start))
+        stmt = stmt.where(Order.at >= _query_date(start))
     if end:
-        stmt = stmt.where(Order.at <= datetime.fromisoformat(end + "T23:59:59") if len(end) == 10 else datetime.fromisoformat(end))
+        stmt = stmt.where(Order.at <= _query_date(end, end_of_day=True))
     total = db.scalar(select(func.count()).select_from(stmt.order_by(None).subquery())) or 0
     rows = list(db.scalars(stmt.order_by(desc(Order.at)).offset(max(0, (current - 1) * page_size)).limit(page_size)))
     return {"data": [order_view(row) for row in rows], "total": total, "success": True}
@@ -140,11 +196,13 @@ def orders_summary(db: Session, *, days: int = 30) -> dict[str, Any]:
         daily[day] = daily.get(day, 0) + row.amount_cents
         label = row.title or row.sku or "未命名商品"
         by_sku[label] = by_sku.get(label, 0) + row.amount_cents
-    return {
+    result = {
         "month_cents": sum(row.amount_cents for row in month),
         "d30_cents": sum(row.amount_cents for row in recent),
         "total_cents": sum(row.amount_cents for row in paid),
         "orders_d30": len(recent),
         "daily": [{"day": day, "cents": daily[day]} for day in sorted(daily)],
-        "by_plan": [{"label": name, "cents": cents} for name, cents in sorted(by_sku.items(), key=lambda item: item[1], reverse=True)],
+        "by_product": [{"label": name, "cents": cents} for name, cents in sorted(by_sku.items(), key=lambda item: item[1], reverse=True)],
     }
+    result["by_plan"] = result["by_product"]
+    return result

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 from typing import Any
 
 from sqlalchemy import select
@@ -24,20 +25,43 @@ DEFAULT_SITE: dict[str, Any] = {
     "cn_label": "国内站",
     "intl_label": "海外站",
     "geo_schedule": "weekly",
+    "collect_token": "",
+    "hook_token": "",
+    "shopify_secret": "",
+    "woo_secret": "",
+    "alert_webhook": "",
+    "alert_hour": 1,
 }
 
 
 def _normalize(raw: dict[str, Any] | None) -> dict[str, Any]:
     data = {**DEFAULT_SITE, **(raw or {})}
     for key in ("brand_aliases", "domains", "cn_hosts", "intl_hosts", "keywords", "competitors", "owned_urls"):
-        values = data.get(key) or []
+        values = data.get(key)
         if isinstance(values, str):
             values = [line.strip() for line in values.replace(",", "\n").splitlines() if line.strip()]
+        elif not isinstance(values, (list, tuple, set)):
+            values = []
         data[key] = [str(item).strip() for item in values if str(item).strip()]
     data["brand"] = str(data.get("brand") or DEFAULT_SITE["brand"]).strip()
     data["category"] = str(data.get("category") or DEFAULT_SITE["category"]).strip()
     data["currency"] = str(data.get("currency") or "CNY").strip().upper()[:8]
     data["geo_schedule"] = "daily" if str(data.get("geo_schedule") or "").lower() == "daily" else "weekly"
+    for key in ("collect_token", "hook_token", "shopify_secret", "woo_secret", "alert_webhook"):
+        data[key] = str(data.get(key) or "").strip()
+    raw_hour = data.get("alert_hour")
+    try:
+        if raw_hour is None or raw_hour == "":
+            hour = 1
+        elif isinstance(raw_hour, bool) or isinstance(raw_hour, (list, dict, tuple, set)):
+            hour = 1
+        elif isinstance(raw_hour, float) and not math.isfinite(raw_hour):
+            hour = 1
+        else:
+            hour = int(raw_hour)
+    except (TypeError, ValueError, OverflowError):
+        hour = 1
+    data["alert_hour"] = max(0, min(23, hour))
     return data
 
 

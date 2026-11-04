@@ -27,7 +27,7 @@ export function SitePage() {
 
   return (
     <PageContainer
-      subTitle={s ? `报表 ${time(s.generated_at)} · ${SITE_REGIONS[region]}` : "国内外独立站访问、来源、下单漏斗与 GEO"}
+      subTitle={s ? `报表 ${time(s.generated_at)} · ${SITE_REGIONS[region]}` : "国内外访问、来源、SEO 抓取、下单漏斗与 GEO"}
       extra={
         <Space wrap>
           <RegionSwitch value={region} onChange={setRegion} />
@@ -208,7 +208,7 @@ function GeoPanel({ geo, isOwner }) {
           { title: "已测", dataIndex: "tested", width: 70, render: (v) => (v ? "是" : "待测") },
           { title: "引用", dataIndex: "direct_cited", width: 70 },
           { title: "最佳排名", dataIndex: "best_rank", width: 90, render: (v) => v || "—" },
-          { title: "最近回传", dataIndex: "updated_at", width: 180, render: (v) => v || "—" },
+          { title: "最近回传", dataIndex: "updated_at", width: 180, render: (v) => time(v) },
         ]}
       />
       <Table

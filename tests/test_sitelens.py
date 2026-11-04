@@ -28,6 +28,10 @@ class SiteLensTest(unittest.TestCase):
         self.seed_demo = seed_demo
 
     def tearDown(self) -> None:
+        if getattr(self, "client", None):
+            self.client.close()
+        if getattr(self, "db_module", None) and self.db_module.engine is not None:
+            self.db_module.engine.dispose()
         self.tmp.cleanup()
 
     def login(self, username: str = "boss", password: str = "owner-password-1") -> TestClient:
@@ -145,6 +149,41 @@ class SiteLensTest(unittest.TestCase):
         self.assertNotIn("立即体验", str(summary))
         settings = owner.get("/api/admin/settings").json()
         self.assertEqual(settings["brand"], "流明好物")
+
+    def test_spa_does_not_leak_source(self):
+        for path in (
+            "/%2e%2e/%2e%2e/sitelens/app.py",
+            "/../../sitelens/app.py",
+            "/../../pyproject.toml",
+            "/%2e%2e%00/sitelens/app.py",
+        ):
+            res = self.client.get(path)
+            self.assertNotIn("from fastapi import FastAPI", res.text)
+            self.assertNotIn("[project]", res.text)
+            self.assertNotEqual(res.status_code, 500)
+            self.assertLess(res.status_code, 500)
+
+    def test_collect_rejects_bad_status_and_huge_body(self):
+        crawl = self.client.post("/api/collect/crawl", json={"path": "/x", "status": "abc-not-a-number"})
+        self.assertEqual(crawl.status_code, 200, crawl.text)
+        huge = self.client.post(
+            "/api/collect",
+            json={"name": "pageview", "path": "/huge-props", "props": {"blob": "B" * 200_000}},
+        )
+        self.assertEqual(huge.status_code, 413)
+
+    def test_admin_validates_days_dates_and_like(self):
+        owner = self.login()
+        self.assertEqual(owner.get("/api/admin/overview?days=999999999999").status_code, 422)
+        self.assertEqual(owner.get("/api/admin/overview?days=-5").status_code, 422)
+        self.assertEqual(owner.get("/api/admin/orders?start=not-a-date").status_code, 400)
+        self.assertEqual(owner.get("/api/admin/orders?start=2024-13-45").status_code, 400)
+        self.assertEqual(owner.get("/api/admin/orders?end=garbage!!").status_code, 400)
+        users = owner.get("/api/admin/users?q=%").json()
+        self.assertEqual(users["total"], 0)
+        owner.post("/api/admin/orders", json={"title": "羊毛%毯", "amount": 12, "customer": "Ada"})
+        wildcard = owner.get("/api/admin/orders?q=%").json()
+        self.assertEqual(wildcard["total"], 1)
 
 
 if __name__ == "__main__":

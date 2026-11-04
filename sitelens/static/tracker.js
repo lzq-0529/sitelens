@@ -16,6 +16,10 @@
       return "";
     }
   }
+  function accountOf(props) {
+    if (!props) return "";
+    return props.account || props.email || props.user_id || props.userId || props.customer_email || "";
+  }
   function send(name, props) {
     var body = {
       name: name,
@@ -28,6 +32,8 @@
       utm: location.search,
       props: props || {},
     };
+    var account = accountOf(props);
+    if (account) body.account = account;
     var headers = { "content-type": "application/json" };
     if (key) headers["x-sitelens-token"] = key;
     try {

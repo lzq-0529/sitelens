@@ -1,7 +1,17 @@
 [project]
 name = "sitelens"
 version = "0.1.0"
-description = "Traffic, order conversion, and GEO answer monitoring for independent websites."
+description = "Self-hosted ops console for independent stores: traffic, SEO crawlers, GEO citations, and order conversion."
+keywords = [
+  "analytics",
+  "seo",
+  "geo",
+  "ecommerce",
+  "shopify",
+  "woocommerce",
+  "self-hosted",
+  "web-analytics",
+]
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }

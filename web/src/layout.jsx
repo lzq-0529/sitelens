@@ -15,10 +15,10 @@ const SettingsPage = page(() => import("./pages/settings"), "SettingsPage");
 
 const ROUTES = [
   { path: "/overview", name: "流量与总览", icon: <DashboardOutlined />, element: <OverviewPage /> },
-  { path: "/site", name: "国内外站点分析", icon: <GlobalOutlined />, element: <SitePage /> },
+  { path: "/site", name: "站点 / SEO / GEO", icon: <GlobalOutlined />, element: <SitePage /> },
   { path: "/visitors", name: "网站用户与行为", icon: <TeamOutlined />, element: <VisitorsPage /> },
   { path: "/orders", name: "订单与收入", icon: <MoneyCollectOutlined />, element: <OrdersPage /> },
-  { path: "/settings", name: "站点与 GEO 接入", icon: <SettingOutlined />, element: <SettingsPage /> },
+  { path: "/settings", name: "接入设置", icon: <SettingOutlined />, element: <SettingsPage /> },
   { path: "/users", name: "后台账号与审计", icon: <AuditOutlined />, element: <UsersPage />, ownerOnly: true },
 ];
 
@@ -40,7 +40,7 @@ export function ConsoleLayout() {
       menuItemRender={(item, dom) => <a onClick={() => navigate(item.path)}>{dom}</a>}
       actionsRender={() => [
         <Tag key="env" color="success" style={{ margin: 0 }}>
-          独立站流量 · 下单 · GEO
+          流量 · SEO · 下单 · GEO
         </Tag>,
       ]}
       avatarProps={{

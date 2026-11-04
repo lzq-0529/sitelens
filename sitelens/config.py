@@ -46,5 +46,23 @@ def geo_token() -> str:
 
 
 def collect_token() -> str:
-    """Optional shared secret for the public tracker. Empty means open collect."""
+    """Optional shared secret for the public tracker. Empty means open collect unless production."""
     return str(os.environ.get("SITELENS_COLLECT_TOKEN") or "").strip()
+
+
+def cors_origins() -> list[str]:
+    raw = str(os.environ.get("SITELENS_CORS_ORIGINS") or "").strip()
+    if not raw:
+        return []
+    return [item.strip() for item in raw.split(",") if item.strip()]
+
+
+def cron_token() -> str:
+    configured = str(os.environ.get("SITELENS_CRON_TOKEN") or "").strip()
+    if configured:
+        return configured
+    path = data_dir() / "cron_token"
+    if not path.is_file():
+        path.write_text("slcron_" + secrets.token_urlsafe(24), encoding="utf-8")
+        path.chmod(0o600)
+    return path.read_text(encoding="utf-8").strip()

@@ -11,7 +11,7 @@ export function VisitorsPage() {
   const [region, setRegion] = useState("all");
   const usersRef = useRef();
   const eventsRef = useRef();
-  const summary = useLoad(() => api(`/api/admin/workbench/summary?region=${region}`), [region]);
+  const summary = useLoad(() => api(`/api/admin/visitors/summary?region=${region}`), [region]);
   const s = summary.data || {};
 
   return (
@@ -75,12 +75,12 @@ export function VisitorsPage() {
                   request={tableRequest("/api/admin/site/events", { days: 28 })}
                   cardBordered={false}
                   columns={[
-                    { title: "时间", dataIndex: "at", renderText: time, width: 160 },
-                    { title: "事件", dataIndex: "name", width: 110, render: (v) => EVENTS[v] || v },
+                    { title: "时间", dataIndex: "at", renderText: time, width: 158 },
+                    { title: "事件", dataIndex: "name", width: 88, render: (v) => EVENTS[v] || v },
+                    { title: "账号", dataIndex: "account", width: 180, ellipsis: true, renderText: (v) => v || "—" },
                     { title: "站点", dataIndex: "region", width: 90, render: (_, row) => <RegionTag region={row.region} /> },
                     { title: "路径", dataIndex: "path", ellipsis: true },
-                    { title: "来源", dataIndex: "source", width: 120 },
-                    { title: "账号", dataIndex: "account", width: 160, renderText: (v) => v || "—" },
+                    { title: "来源", dataIndex: "source", width: 110, ellipsis: true },
                   ]}
                 />
               ),

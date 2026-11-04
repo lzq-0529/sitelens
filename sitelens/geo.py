@@ -161,13 +161,32 @@ def save_geo_prompts(db: Session, payload: dict[str, Any]) -> dict[str, list[str
     return next_prompts
 
 
+def _aware(value: datetime | None, fallback: datetime | None = None) -> datetime:
+    if value is None:
+        return fallback if fallback is not None else utcnow()
+    return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
+
+
 def _host(url: str) -> str:
-    return (urlparse(url).hostname or "").lower().removeprefix("www.")
+    try:
+        return (urlparse(url).hostname or "").lower().removeprefix("www.")
+    except ValueError:
+        return ""
+
+
+def _as_source_list(raw_sources: Any) -> list[Any]:
+    if isinstance(raw_sources, list):
+        return raw_sources
+    if isinstance(raw_sources, tuple):
+        return list(raw_sources)
+    if isinstance(raw_sources, str) and raw_sources.strip():
+        return [raw_sources.strip()]
+    return []
 
 
 def score_item(query: str, answer: str, raw_sources: list[Any], site: dict[str, Any]) -> dict[str, Any]:
     sources: list[dict[str, Any]] = []
-    for index, item in enumerate(raw_sources or [], start=1):
+    for index, item in enumerate(_as_source_list(raw_sources), start=1):
         if isinstance(item, str):
             sources.append({"rank": index, "url": item.strip(), "title": item.strip(), "cited": True})
             continue
@@ -178,7 +197,7 @@ def score_item(query: str, answer: str, raw_sources: list[Any], site: dict[str, 
         raw_rank = item.get("rank") if item.get("rank") is not None else item.get("index")
         try:
             rank = max(1, int(raw_rank)) if raw_rank is not None else index
-        except (TypeError, ValueError):
+        except (TypeError, ValueError, OverflowError):
             rank = index
         if url or title:
             sources.append({"rank": rank, "url": url, "title": title, "cited": bool(item.get("cited", True))})
@@ -331,9 +350,9 @@ def geo_report(db: Session) -> dict[str, Any]:
     latest = None
     for spec in GEO_PLATFORMS:
         checks = by_platform.get(spec["id"]) or []
-        checks.sort(key=lambda item: item.updated_at or now, reverse=True)
-        last = checks[0].updated_at if checks else None
-        due = last is None or (now - (last if last.tzinfo else last.replace(tzinfo=timezone.utc))) >= timedelta(days=interval)
+        checks.sort(key=lambda item: _aware(item.updated_at, now), reverse=True)
+        last = _aware(checks[0].updated_at) if checks else None
+        due = last is None or (now - last) >= timedelta(days=interval)
         cited = 0
         best_rank = None
         brand_hits = 0
@@ -369,7 +388,7 @@ def geo_report(db: Session) -> dict[str, Any]:
                     "model": check.model,
                 }
             )
-        if last and (latest is None or last > latest):
+        if last and (latest is None or last > _aware(latest)):
             latest = last
         platforms.append(
             {

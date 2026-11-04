@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 import secrets
 from collections import Counter, defaultdict
 from datetime import datetime, timedelta, timezone
@@ -42,14 +43,69 @@ def _as_utc(value: datetime | None) -> datetime:
     return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
 
 
+MAX_DAYS = 3660
+MAX_PROPS_CHARS = 8000
+
+
+def clamp_days(days: int | str | None, default: int = 28) -> int:
+    try:
+        if isinstance(days, float) and not math.isfinite(days):
+            value = default
+        else:
+            value = int(days)
+    except (TypeError, ValueError, OverflowError):
+        value = default
+    return max(1, min(MAX_DAYS, value))
+
+
 def since(days: int) -> datetime:
-    return utcnow() - timedelta(days=max(1, int(days)))
+    return utcnow() - timedelta(days=clamp_days(days))
+
+
+def parse_http_status(raw: object, default: int = 200) -> int:
+    if isinstance(raw, bool) or isinstance(raw, (list, dict, tuple, set)):
+        return default
+    if isinstance(raw, float) and not math.isfinite(raw):
+        return default
+    if isinstance(raw, str) and raw.strip().lower() in {"inf", "+inf", "-inf", "nan", "infinity", "+infinity", "-infinity"}:
+        return default
+    try:
+        value = int(raw)
+    except (TypeError, ValueError, OverflowError):
+        return default
+    return value if 0 <= value <= 999 else default
+
+
+def contains_like(value: str) -> str:
+    escaped = value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+    return f"%{escaped}%"
+
+
+def capped_props(props: dict[str, Any]) -> str:
+    blob = json.dumps(props, ensure_ascii=False)
+    if len(blob) > MAX_PROPS_CHARS:
+        return json.dumps({"_truncated": True, "keys": list(props)[:20]}, ensure_ascii=False)
+    return blob
 
 
 def region_filter(column, region: str):
     if region in {"cn", "intl"}:
         return column == region
     return True
+
+
+def extract_account(payload: dict[str, Any], props: dict[str, Any] | None = None) -> str:
+    bags = [payload]
+    if isinstance(props, dict):
+        bags.append(props)
+    elif isinstance(payload.get("props"), dict):
+        bags.append(payload["props"])
+    for bag in bags:
+        for key in ("account", "email", "user_id", "userId", "customer_email", "customerEmail"):
+            value = str(bag.get(key) or "").strip()
+            if value:
+                return value[:120]
+    return ""
 
 
 def ingest_event(db: Session, payload: dict[str, Any], *, ip: str = "", default_ua: str = "") -> Event:
@@ -63,10 +119,10 @@ def ingest_event(db: Session, payload: dict[str, Any], *, ip: str = "", default_
     referrer = str(payload.get("referrer") or payload.get("ref") or "")[:255]
     utm = str(payload.get("utm") or payload.get("source") or "")
     source = source_of(referrer, utm)
-    account = str(payload.get("account") or payload.get("email") or payload.get("user_id") or "")[:120]
+    props = payload.get("props") if isinstance(payload.get("props"), dict) else {}
+    account = extract_account(payload, props)
     path = str(payload.get("path") or payload.get("url") or "/")[:512]
     title = str(payload.get("title") or "")[:255]
-    props = payload.get("props") if isinstance(payload.get("props"), dict) else {}
     stamp = payload.get("at")
     if isinstance(stamp, str):
         try:
@@ -90,7 +146,7 @@ def ingest_event(db: Session, payload: dict[str, Any], *, ip: str = "", default_
         device=device_of(user_agent),
         kind=kind,
         account=account,
-        props=json.dumps(props, ensure_ascii=False),
+        props=capped_props(props),
     )
     db.add(event)
     _touch_visitor(db, event)
@@ -103,7 +159,7 @@ def ingest_event(db: Session, payload: dict[str, Any], *, ip: str = "", default_
                 label=engine or "未知爬虫",
                 ip=event.ip,
                 path=path,
-                status=int(payload.get("status") or 200),
+                status=parse_http_status(payload.get("status"), 200),
                 user_agent=user_agent,
             )
         )
@@ -125,7 +181,7 @@ def ingest_crawl(db: Session, payload: dict[str, Any], *, ip: str = "") -> Crawl
         label=str(payload.get("label") or engine or "未知爬虫")[:80],
         ip=str(payload.get("ip") or ip or "")[:64],
         path=str(payload.get("path") or "/")[:512],
-        status=int(payload.get("status") or 200),
+        status=parse_http_status(payload.get("status"), 200),
         user_agent=user_agent,
         verified=str(payload.get("verified") or "unchecked")[:16],
     )
@@ -180,15 +236,10 @@ def _touch_visitor(db: Session, event: Event) -> Visitor:
 
 
 def _order_from_purchase(db: Session, event: Event, props: dict[str, Any], site: dict[str, Any]) -> Order | None:
-    from .orders import create_order
+    from .orders import coerce_amount_cents, create_order
 
-    amount = props.get("amount_cents")
-    if amount is None and props.get("amount") is not None:
-        try:
-            amount = int(round(float(props["amount"]) * 100))
-        except (TypeError, ValueError):
-            amount = None
-    if not amount:
+    amount = coerce_amount_cents(props if isinstance(props, dict) else {})
+    if amount is None:
         return None
     external = str(props.get("order_id") or props.get("id") or "").strip()
     if external:
@@ -235,6 +286,7 @@ def _rank(counter: Counter[str], limit: int = 12) -> list[dict[str, Any]]:
 
 
 def build_summary(db: Session, *, days: int = 28, scope: str = "human", region: str = "all") -> dict[str, Any]:
+    days = clamp_days(days)
     start = since(days)
     stmt = select(Event).where(Event.at >= start, _scope_filter(scope))
     if region in {"cn", "intl"}:
@@ -250,7 +302,7 @@ def build_summary(db: Session, *, days: int = 28, scope: str = "human", region: 
     kinds: Counter[str] = Counter()
 
     for event in events:
-        day = event.at.astimezone(timezone.utc).strftime("%Y-%m-%d")
+        day = _as_utc(event.at).strftime("%Y-%m-%d")
         slot = daily.setdefault(
             day,
             {
@@ -368,6 +420,7 @@ def build_summary(db: Session, *, days: int = 28, scope: str = "human", region: 
 
 
 def build_search(db: Session, *, days: int = 28, region: str = "all") -> dict[str, Any]:
+    days = clamp_days(days)
     start = since(days)
     stmt = select(Crawl).where(Crawl.at >= start)
     if region in {"cn", "intl"}:
@@ -483,15 +536,16 @@ def list_visitors(
     if behaviour in flags:
         stmt = stmt.where(flags[behaviour])
     if q:
-        like = f"%{q}%"
+        like = contains_like(q)
         stmt = stmt.where(
             or_(
-                Visitor.ip.like(like),
-                Visitor.account.like(like),
-                Visitor.referrer.like(like),
-                Visitor.source.like(like),
-                Visitor.device.like(like),
-                Visitor.note.like(like),
+                Visitor.ip.like(like, escape="\\"),
+                Visitor.account.like(like, escape="\\"),
+                Visitor.referrer.like(like, escape="\\"),
+                Visitor.source.like(like, escape="\\"),
+                Visitor.device.like(like, escape="\\"),
+                Visitor.note.like(like, escape="\\"),
+                Visitor.id.like(like, escape="\\"),
             )
         )
     total = db.scalar(select(func.count()).select_from(stmt.order_by(None).subquery())) or 0
@@ -517,8 +571,15 @@ def list_events(
     if name:
         stmt = stmt.where(Event.name == name)
     if q:
-        like = f"%{q}%"
-        stmt = stmt.where(or_(Event.path.like(like), Event.account.like(like), Event.source.like(like), Event.ip.like(like)))
+        like = contains_like(q)
+        stmt = stmt.where(
+            or_(
+                Event.path.like(like, escape="\\"),
+                Event.account.like(like, escape="\\"),
+                Event.source.like(like, escape="\\"),
+                Event.ip.like(like, escape="\\"),
+            )
+        )
     total = db.scalar(select(func.count()).select_from(stmt.order_by(None).subquery())) or 0
     rows = list(db.scalars(stmt.order_by(desc(Event.at)).offset(max(0, (current - 1) * page_size)).limit(page_size)))
     return {
@@ -556,8 +617,15 @@ def list_crawls(
     if region in {"cn", "intl"}:
         stmt = stmt.where(Crawl.region == region)
     if q:
-        like = f"%{q}%"
-        stmt = stmt.where(or_(Crawl.engine.like(like), Crawl.label.like(like), Crawl.path.like(like), Crawl.ip.like(like)))
+        like = contains_like(q)
+        stmt = stmt.where(
+            or_(
+                Crawl.engine.like(like, escape="\\"),
+                Crawl.label.like(like, escape="\\"),
+                Crawl.path.like(like, escape="\\"),
+                Crawl.ip.like(like, escape="\\"),
+            )
+        )
     total = db.scalar(select(func.count()).select_from(stmt.order_by(None).subquery())) or 0
     rows = list(db.scalars(stmt.order_by(desc(Crawl.at)).offset(max(0, (current - 1) * page_size)).limit(page_size)))
     return {

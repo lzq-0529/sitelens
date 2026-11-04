@@ -66,7 +66,7 @@ function LoginPage({ onSignedIn }) {
             <span className="sl-login-badge">INDEPENDENT SITES</span>
           </div>
           <h1 className="sl-login-title">SiteLens 独立站监控台</h1>
-          <p className="sl-login-subtitle">流量分析 · 下单转化 · GEO 问答监测</p>
+          <p className="sl-login-subtitle">流量 · SEO 抓取 · 下单转化 · GEO 问答</p>
         </div>
         <Form layout="vertical" requiredMark={false} onFinish={handleFinish} className="sl-login-form">
           <Form.Item label="管理账号" name="username" rules={[{ required: true, message: "请输入用户名" }]}>
@@ -79,6 +79,9 @@ function LoginPage({ onSignedIn }) {
             进入监控台
           </Button>
         </Form>
+        <p className="sl-login-demo">
+          本地演示账号 <code>owner</code>　密码 <code>sitelens-demo</code>
+        </p>
         <div className="sl-login-foot">
           <SafetyCertificateOutlined />
           后台不开放注册，不对外收录
