@@ -20,11 +20,19 @@
 
 </div>
 
-<p align="center">
-  <img src="docs/screenshots/overview.png" alt="SiteLens 流量与总览：独立访客、看商品、加购、结账、完成下单、已识别用户、国内外漏斗" width="960">
-</p>
 
 > **真实在用，展示用演示数据。** SiteLens 是从 **[qingjiaolab.com](https://qingjiaolab.com)**（青椒智能脱敏：文件交给 AI 前先脱敏）生产环境背后的运营监控里提炼出来的。点开官网，就能看到这套监控原本在看的那个真实产品长什么样。本 README 的所有截图都故意用**演示店**（流明好物）数据：不展示青椒官网的真实流量、账号和订单。
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/overview.png" alt="流量与总览：访客、下单漏斗、国内外对比" width="100%"><br><sub><b>1. 流量与总览</b> — UV/PV、加购到付款漏斗、国内外对比</sub></td>
+    <td width="50%"><img src="docs/screenshots/geo.png" alt="AI 回答引用监测：15 家问答平台引用与品牌提及" width="100%"><br><sub><b>2. AI 回答引用监测（GEO）</b> — 15 家问答平台、官网引用、品牌提及</sub></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/visitors.png" alt="网站用户与行为：已识别账号、平台来源、打码 IP" width="100%"><br><sub><b>3. 网站用户与行为</b> — 已识别账号、平台来源标签、IP 打码</sub></td>
+    <td width="50%"><img src="docs/screenshots/orders.png" alt="订单与收入：已支付收入、按商品统计" width="100%"><br><sub><b>4. 订单与收入</b> — 只统计已支付、按商品看收入</sub></td>
+  </tr>
+</table>
 
 漏斗按 **店** 来，不是按「立即体验」：
 
@@ -45,11 +53,6 @@
 
 流量、**SEO**、转化、GEO，本来就该是同一套运营监控，不该四个标签页来回切。
 
-<p align="center">
-  <img src="docs/screenshots/login.png" alt="SiteLens 登录页：独立站监控台" width="460">
-  &nbsp;
-  <img src="docs/screenshots/site.png" alt="站点 / SEO / GEO：官网访客、搜索引擎抓取次数、知乎小红书百度 Google 来源" width="460">
-</p>
 
 ## 打开后台你能看到什么（都是真实页面）
 
@@ -61,9 +64,6 @@
 
 产品里一直有，以前 README 没写清楚。贴上 `tracker.js` 就会记。
 
-<p align="center">
-  <img src="docs/screenshots/seo.png" alt="搜索引擎与 AI 抓取：百度、Google、未知爬虫次数，来源含 Google、百度、小红书、知乎" width="960">
-</p>
 
 - **人机分开**：页面上有「只看真人 / 全部访问」，爬虫不会把转化率做假
 - **搜索引擎**：Google、Bing、百度、搜狗、360、神马、DuckDuckGo、Yandex、Applebot
@@ -76,9 +76,6 @@
 
 ### 3. GEO：AI 问答这周会不会引用你的官网
 
-<p align="center">
-  <img src="docs/screenshots/geo.png" alt="GEO 引用监测：15 家问答平台覆盖、官网被引用、品牌提及、DeepSeek / Perplexity 回传" width="960">
-</p>
 
 内置 15 家消费级问答：
 
@@ -95,11 +92,6 @@ SiteLens **不会**自己去登录这些网页。每周用 Grok / Muse 或你自
 
 ### 4. 认得出人，收得到钱
 
-<p align="center">
-  <img src="docs/screenshots/visitors.png" alt="已识别用户：邮箱账号、国内/海外、百度/小红书/知乎来源、加购与下单" width="460">
-  &nbsp;
-  <img src="docs/screenshots/orders.png" alt="订单与收入：当日与近 30 天实收、按商品看金额、已支付订单" width="460">
-</p>
 
 - 用户登录后调用 `sitelens.identify(email)`，否则「网站用户」是空的
 - 订单走 Shopify `orders/paid`、WooCommerce 或通用 HMAC webhook
@@ -107,9 +99,6 @@ SiteLens **不会**自己去登录这些网页。每周用 Grok / Muse 或你自
 
 ### 5. 接入设置：就绪状态 + 四步向导
 
-<p align="center">
-  <img src="docs/screenshots/settings.png" alt="接入设置：就绪状态、四步向导、国内站/海外站脚本、认人与下单示例" width="920">
-</p>
 
 品牌、别名、`cn_hosts` / `intl_hosts`、采集密钥、Shopify / Woo / 通用密钥、日告警 Webhook、GEO Token。生产环境 `SITELENS_ENV=production` 会拒收不带 token 的采集。
 
