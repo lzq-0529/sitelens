@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+from collections import Counter
 from datetime import datetime, timedelta, timezone
 from typing import Any
 from urllib.parse import urlparse
@@ -347,6 +348,7 @@ def geo_report(db: Session) -> dict[str, Any]:
     owned = 0
     brand = 0
     total_queries = 0
+    competitor_counts: Counter = Counter()
     latest = None
     for spec in GEO_PLATFORMS:
         checks = by_platform.get(spec["id"]) or []
@@ -368,6 +370,9 @@ def geo_report(db: Session) -> dict[str, Any]:
             if scored.get("brandMentioned"):
                 brand += 1
                 brand_hits += 1
+            for comp in scored.get("competitorsMentioned") or []:
+                if comp:
+                    competitor_counts[str(comp)] += 1
             ranks = [int(item.get("rank") or 0) for item in scored.get("citations") or [] if item.get("rank")]
             if ranks:
                 best_rank = min(best_rank or ranks[0], min(ranks))
@@ -416,6 +421,10 @@ def geo_report(db: Session) -> dict[str, Any]:
             "owned_cited_count": owned,
             "brand_mention_count": brand,
             "owned_coverage_pct": round((owned / total_queries) * 100) if total_queries else 0,
+            "brand_mention_pct": round((brand / total_queries) * 100) if total_queries else 0,
+            "visibility_score": round(((brand / total_queries) * 0.5 + (owned / total_queries) * 0.5) * 100) if total_queries else 0,
+            "competitors": [{"name": name, "mentions": count} for name, count in competitor_counts.most_common(8)],
+            "share_of_voice_pct": round((brand / (brand + sum(competitor_counts.values()))) * 100) if (brand + sum(competitor_counts.values())) else 0,
         },
         "platforms": platforms,
         "rows": detail_rows,

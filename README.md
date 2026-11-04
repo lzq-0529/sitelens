@@ -9,6 +9,7 @@
 Shopify, WooCommerce, or a China + international pair. Your SQLite. No public signup. No marketing-cloud tax.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![CI](https://github.com/lzq-0529/sitelens/actions/workflows/test.yml/badge.svg)](https://github.com/lzq-0529/sitelens/actions/workflows/test.yml)
 [![GitHub stars](https://img.shields.io/github/stars/lzq-0529/sitelens?style=social)](https://github.com/lzq-0529/sitelens)
 ![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-3776ab.svg)
 ![self-hosted](https://img.shields.io/badge/self--hosted-SQLite-16a34a.svg)
@@ -25,6 +26,8 @@ Shopify, WooCommerce, or a China + international pair. Your SQLite. No public si
 
 
 > **Real site behind it, demo data in front of you.** SiteLens is extracted from the production ops monitoring behind **[qingjiaolab.com](https://qingjiaolab.com) — Qingjiao Redact（青椒智能脱敏 ）**, private document redaction before files go to AI. Visit the live site to see the product whose traffic, crawlers, and AI mentions this console was built to watch. Every screenshot in this README is a **mock demo store** (Lumen Goods) on purpose: no real Qingjiao traffic, accounts, or orders are shown.
+
+**Try it in a minute:** `docker compose up -d --build`, then open http://127.0.0.1:8788 (demo `owner` / `sitelens-demo`) — or wire your own store in 30 minutes below.
 
 <table>
   <tr>

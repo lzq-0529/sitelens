@@ -196,11 +196,20 @@ def orders_summary(db: Session, *, days: int = 30) -> dict[str, Any]:
         daily[day] = daily.get(day, 0) + row.amount_cents
         label = row.title or row.sku or "未命名商品"
         by_sku[label] = by_sku.get(label, 0) + row.amount_cents
+    customers: dict[str, int] = {}
+    for row in paid:
+        if row.customer:
+            customers[row.customer] = customers.get(row.customer, 0) + 1
+    refunded = [row for row in rows if row.status == "refunded"]
     result = {
         "month_cents": sum(row.amount_cents for row in month),
         "d30_cents": sum(row.amount_cents for row in recent),
         "total_cents": sum(row.amount_cents for row in paid),
         "orders_d30": len(recent),
+        "aov_cents": (sum(row.amount_cents for row in recent) // len(recent)) if recent else 0,
+        "repeat_customers": sum(1 for count in customers.values() if count > 1),
+        "customers": len(customers),
+        "refunded": len(refunded),
         "daily": [{"day": day, "cents": daily[day]} for day in sorted(daily)],
         "by_product": [{"label": name, "cents": cents} for name, cents in sorted(by_sku.items(), key=lambda item: item[1], reverse=True)],
     }

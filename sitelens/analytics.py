@@ -370,6 +370,25 @@ def build_summary(db: Session, *, days: int = 28, scope: str = "human", region: 
             }
         )
 
+    # Previous equal-length window, for period-over-period deltas on the KPI cards.
+    prev_start = start - timedelta(days=days)
+    prev_stmt = select(Event.name, Event.visitor_id).where(
+        Event.at >= prev_start, Event.at < start, _scope_filter(scope)
+    )
+    if region in {"cn", "intl"}:
+        prev_stmt = prev_stmt.where(Event.region == region)
+    prev_sets: dict[str, set[str]] = {"pageview": set(), "view_item": set(), "add_to_cart": set(), "begin_checkout": set(), "purchase": set()}
+    for name_, vid_ in db.execute(prev_stmt).all():
+        if name_ in prev_sets and vid_:
+            prev_sets[name_].add(vid_)
+    previous = {
+        "visitors": len(prev_sets["pageview"]),
+        "product": len(prev_sets["view_item"]),
+        "cart": len(prev_sets["add_to_cart"]),
+        "checkout": len(prev_sets["begin_checkout"]),
+        "order": len(prev_sets["purchase"]),
+    }
+
     identified = db.scalar(
         select(func.count()).select_from(Visitor).where(Visitor.account != "", Visitor.last_at >= start)
     ) or 0
@@ -393,6 +412,7 @@ def build_summary(db: Session, *, days: int = 28, scope: str = "human", region: 
             "landings": _rank(landings),
             "pages": _rank(pages),
         },
+        "previous": previous,
         "users": {
             "identified": identified,
             "signed_up": len(_visitor_ids(db, days=days, region=region, scope=scope, name="signup")),
@@ -675,6 +695,38 @@ def users_summary(db: Session, *, region: str = "all") -> dict[str, Any]:
         "signed_up": sum(1 for row in rows if row.signed_up),
         "ordered": sum(1 for row in rows if row.ordered),
         "cart": sum(1 for row in rows if row.added_cart),
+        "abandoned": sum(1 for row in rows if row.began_checkout and not row.ordered),
         "cn": sum(1 for row in rows if row.region == "cn"),
         "intl": sum(1 for row in rows if row.region == "intl"),
+    }
+
+
+def build_live(db: Session, *, minutes: int = 30) -> dict[str, Any]:
+    """Realtime strip: what is happening on the store right now."""
+    minutes = max(1, min(24 * 60, int(minutes or 30)))
+    start = utcnow() - timedelta(minutes=minutes)
+    stmt = select(Event).where(Event.at >= start, Event.kind == "human")
+    rows = list(db.scalars(stmt))
+    visitors: set[str] = set()
+    pages: Counter[str] = Counter()
+    sources: Counter[str] = Counter()
+    carts = 0
+    orders = 0
+    for event in rows:
+        visitors.add(event.visitor_id)
+        if event.name == "pageview":
+            pages[event.path or "/"] += 1
+            sources[event.source or "直接访问"] += 1
+        elif event.name == "add_to_cart":
+            carts += 1
+        elif event.name == "purchase":
+            orders += 1
+    return {
+        "minutes": minutes,
+        "visitors": len(visitors),
+        "views": sum(pages.values()),
+        "carts": carts,
+        "orders": orders,
+        "top_pages": _rank(pages, 5),
+        "top_sources": _rank(sources, 5),
     }

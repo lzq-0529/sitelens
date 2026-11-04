@@ -39,13 +39,14 @@ export function VisitorsPage() {
       <LoadError error={summary.error} />
       <Kpis
         loading={summary.loading}
-        cols={5}
+        cols={6}
         items={[
           { title: t("访客", "Visitors"), value: s.visitors, hint: t(`国内 ${s.cn ?? 0} · 海外 ${s.intl ?? 0}`, `CN ${s.cn ?? 0} · Intl ${s.intl ?? 0}`), color: "#16a34a" },
           { title: t("已识别账号", "Identified"), value: s.identified, hint: t("带邮箱或用户 ID", "With email or user ID"), color: "#0ea5e9" },
           { title: t("新注册", "Signups"), value: s.signed_up, hint: t("signup 事件", "signup events"), color: "#2563eb" },
           { title: t("加过购物车", "Added to cart"), value: s.cart, hint: t("至少一次加购", "At least one add-to-cart"), color: "#7c3aed" },
           { title: t("完成下单", "Ordered"), value: s.ordered, hint: t("至少一笔订单", "At least one order"), color: "#f59e0b" },
+          { title: t("弃购（结账未下单）", "Abandoned checkout"), value: s.abandoned, hint: t("开始结账但没付款，最值得追回", "Began checkout, never paid"), color: "#dc2626" },
         ]}
       />
       <ProCard bordered bodyStyle={{ paddingTop: 4 }}>

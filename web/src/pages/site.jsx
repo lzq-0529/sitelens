@@ -199,6 +199,11 @@ function GeoPanel({ geo, isOwner }) {
           <Tag color="orange">{t("待巡检", "Due")} {summary.due_platforms ?? 0}</Tag>
           <Tag color="green">{t("官网被引用", "Site cited")} {summary.owned_cited_count ?? 0}</Tag>
           <Tag color="purple">{t("品牌提及", "Brand mentions")} {summary.brand_mention_count ?? 0}</Tag>
+          <Tag color="magenta">{t("可见度", "Visibility")} {summary.visibility_score ?? 0} / 100</Tag>
+          <Tag color="volcano">{t("声量份额", "Share of voice")} {summary.share_of_voice_pct ?? 0}%</Tag>
+          {(summary.competitors || []).slice(0, 3).map((c) => (
+            <Tag key={c.name}>{t("竞品", "Competitor")} {c.name} · {c.mentions}</Tag>
+          ))}
         </Space>
         {isOwner && (
           <Space>
@@ -237,6 +242,7 @@ function GeoPanel({ geo, isOwner }) {
           { title: t("摘要", "Answer excerpt"), dataIndex: "answer_excerpt", ellipsis: true },
           { title: t("引用", "Cited"), dataIndex: "cited", width: 80, render: (v) => (v ? <Tag color="green">{t("是", "Yes")}</Tag> : t("否", "No")) },
           { title: t("品牌", "Brand"), dataIndex: "brand_mentioned", width: 80, render: (v) => (v ? t("是", "Yes") : t("否", "No")) },
+          { title: t("竞品提及", "Competitors"), dataIndex: "competitors", width: 150, render: (list) => (list?.length ? list.map((name) => <Tag key={name} color="red">{name}</Tag>) : "—") },
         ]}
       />
       <Modal title={t("GEO 提问词与 Agent 接口", "GEO prompts & agent API")} open={open} onCancel={() => setOpen(false)} footer={null} width={760}>

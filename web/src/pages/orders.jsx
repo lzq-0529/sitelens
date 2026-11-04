@@ -32,12 +32,13 @@ export function OrdersPage() {
       <LoadError error={summary.error} />
       <Kpis
         loading={summary.loading}
-        cols={4}
+        cols={5}
         items={[
           { title: t("本月收入", "Revenue this month"), value: s ? money(s.month_cents) : "¥0.00", hint: t("当月已支付", "Paid this month"), color: "#16a34a" },
           { title: t(`近 ${days} 天收入`, `Revenue, last ${days}d`), value: s ? money(s.d30_cents) : "¥0.00", badge: t(`${s?.orders_d30 ?? 0} 笔`, `${s?.orders_d30 ?? 0} orders`), hint: t("已支付额", "Paid total"), color: "#2563eb" },
           { title: t("累计收入", "All-time revenue"), value: s ? money(s.total_cents) : "¥0.00", hint: t("历史已支付", "All paid"), color: "#7c3aed" },
-          { title: t("成交笔数", "Paid orders"), value: s?.orders_d30 ?? 0, hint: t("近窗口已支付订单", "Paid in window"), color: "#f59e0b" },
+          { title: t("客单价", "Avg order value"), value: s ? money(s.aov_cents) : "¥0.00", hint: t("近窗口平均每笔", "Per paid order in window"), color: "#0ea5e9" },
+          { title: t("成交笔数", "Paid orders"), value: s?.orders_d30 ?? 0, hint: t(`复购客户 ${s?.repeat_customers ?? 0} · 退款 ${s?.refunded ?? 0}`, `Repeat buyers ${s?.repeat_customers ?? 0} · Refunds ${s?.refunded ?? 0}`), color: "#f59e0b" },
         ]}
       />
       <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>

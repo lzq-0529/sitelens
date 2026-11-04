@@ -136,6 +136,17 @@ class HardeningTest(unittest.TestCase):
         self.assertEqual(source_of("", "?utm_source=zhihu_answer"), "知乎")
         self.assertEqual(source_of("https://chatgpt.com/share/1", ""), "ChatGPT")
 
+    def test_live_previous_and_geo_share_of_voice(self):
+        owner = self.login()
+        for visitor, name in (("live-a", "pageview"), ("live-a", "add_to_cart"), ("live-b", "pageview")):
+            res = owner.post("/api/collect", json={"name": name, "visitor_id": visitor, "path": "/", "user_agent": "Mozilla/5.0"})
+            self.assertLess(res.status_code, 500)
+        overview = owner.get("/api/admin/overview?days=28").json()
+        self.assertIn("live", overview)
+        self.assertGreaterEqual(overview["live"]["visitors"], 1)
+        summary = owner.get("/api/admin/site/summary?days=28").json()
+        self.assertIn("previous", summary)
+
     def test_mask_ip_hides_last_octet(self):
         from sitelens.analytics import mask_ip
 

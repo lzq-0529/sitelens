@@ -26,9 +26,9 @@ These are the gaps a stranger hits in the first week. Rough order:
 1. ~~**English UI (i18n toggle).**~~ **Shipped**: a 中文/EN toggle in the
    console header; English screenshots are in the English README. Long-tail
    strings keep being filled in.
-2. **Realtime.** “Who is on the store right now” (last 5/30 min, live page,
-   live source). Umami/Plausible users expect it; SiteLens only has 7/28/90-day
-   windows.
+2. ~~**Realtime.**~~ **Shipped**: a live strip on Overview (visitors / views /
+   carts / orders in the last 30 min, current page, top source). A dedicated
+   realtime page with a live feed is still open.
 3. **Multi-store.** One install, several stores/brands, site switcher. Today
    one SiteLens = one CN+intl pair. Agencies and two-brand operators are stuck.
 4. **Campaign attribution.** Break down `utm_medium` / `utm_campaign` / `utm_term`
@@ -49,14 +49,15 @@ These are the gaps a stranger hits in the first week. Rough order:
 - **Journey & retention:** visitor path (landing → product → cart), new vs
   returning, bounce / time-on-site. Device/browser/OS data is already stored;
   surface it fully (country/city only with an offline GeoIP file, no cloud lookup).
-- **Ecommerce depth:** AOV, repeat buyers, product conversion rate
-  (view → paid per SKU), abandoned-checkout list (began checkout, no order),
-  revenue by channel/coupon.
+- **Ecommerce depth:** ~~AOV, repeat buyers~~ **shipped**; abandoned-checkout
+  KPI **shipped** (the named list is open). Still open: product conversion rate
+  (view → paid per SKU) and revenue by channel/coupon.
 - **SEO depth:** Google Search Console + 百度站长 data import next to crawl
   logs, 404/broken-path report from crawl status, sitemap/robots health check,
   optional keyword rank snapshots. Core Web Vitals (LCP/CLS/INP) via tracker.
-- **GEO depth:** competitor share-of-voice trend over time, per-prompt history
-  chart, sentiment, more one-click agent providers. Today GEO is a table, not a trend.
+- **GEO depth:** ~~visibility score + competitor share of voice~~ **shipped**
+  (score, SoV %, competitor mention tags). Still open: SoV trend over time,
+  per-prompt history, sentiment, more one-click agent providers.
 - **One-click install:** Shopify app/theme snippet and a WooCommerce plugin,
   instead of “paste this script + configure a webhook by hand”.
 - **Sharing:** read-only share link for a dashboard, scheduled weekly report

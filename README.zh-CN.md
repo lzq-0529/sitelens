@@ -7,6 +7,7 @@
 给 **Shopify / WooCommerce / 自建国内站 + 海外站** 用的自托管后台。数据在你自己的机器上，不开放注册，不把订单交给广告云。
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![CI](https://github.com/lzq-0529/sitelens/actions/workflows/test.yml/badge.svg)](https://github.com/lzq-0529/sitelens/actions/workflows/test.yml)
 [![GitHub stars](https://img.shields.io/github/stars/lzq-0529/sitelens?style=social)](https://github.com/lzq-0529/sitelens)
 ![self-hosted](https://img.shields.io/badge/self--hosted-SQLite-16a34a.svg)
 ![SEO](https://img.shields.io/badge/SEO-爬虫%20%2B%20落地页-ec4899.svg)
@@ -22,6 +23,8 @@
 
 
 > **真实在用，展示用演示数据。** SiteLens 是从 **[qingjiaolab.com](https://qingjiaolab.com)**（青椒智能脱敏：文件交给 AI 前先脱敏）生产环境背后的运营监控里提炼出来的。点开官网，就能看到这套监控原本在看的那个真实产品长什么样。本 README 的所有截图都故意用**演示店**（流明好物）数据：不展示青椒官网的真实流量、账号和订单。
+
+**一分钟试用：** `docker compose up -d --build` 后开 http://127.0.0.1:8788 （演示账号 `owner` / `sitelens-demo`），或按下面三十分钟接入自己的店。
 
 <table>
   <tr>

@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from . import config
 from .analytics import (
     MAX_DAYS,
+    build_live,
     build_search,
     build_summary,
     clamp_days,
@@ -86,7 +87,7 @@ def overview(
     days = _days(days)
     site = build_summary(db, days=days, region=region or "all")
     revenue = orders_summary(db, days=days)
-    return {"site": site, "revenue": revenue, "users": users_summary(db, region=region or "all")}
+    return {"site": site, "revenue": revenue, "users": users_summary(db, region=region or "all"), "live": build_live(db)}
 
 
 @router.get("/site/summary")
